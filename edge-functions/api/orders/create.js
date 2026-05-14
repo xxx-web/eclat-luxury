@@ -11,6 +11,10 @@ if (!globalThis.__ECLAT_MEMORY__) {
     orders: new Map()
   };
 }
+// 确保 orders 存在（兼容其他文件初始化的结构）
+if (!globalThis.__ECLAT_MEMORY__.orders) {
+  globalThis.__ECLAT_MEMORY__.orders = new Map();
+}
 const mem = globalThis.__ECLAT_MEMORY__;
 
 export async function onRequestPost(context) {
