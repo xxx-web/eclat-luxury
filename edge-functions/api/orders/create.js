@@ -100,12 +100,17 @@ export async function onRequestPost(context) {
       headers: { 'Content-Type': 'application/json' }
     });
 
-  } catch (error) {
+  }catch (error) {
     console.error('Create order error:', error);
-    return new Response(JSON.stringify({
+    const errorDetails = {
       success: false,
-      message: '创建订单失败: ' + (error.message || '未知错误')
-    }), {
+      message: '创建订单失败: ' + (error.message || '未知错误'),
+      debug: {
+        stack: error.stack,
+        name: error.name
+      }
+    };
+    return new Response(JSON.stringify(errorDetails), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
