@@ -1,0 +1,23 @@
+{
+  "version": 3,
+  "name": "eclat-node-functions",
+  "description": "ÉCLAT Node Functions - 订单处理",
+  "routes": [
+    {
+      "src": "^/node-api/orders/create$",
+      "methods": ["POST"]
+    },
+    {
+      "src": "^/node-api/orders/user$",
+      "methods": ["GET"]
+    },
+    {
+      "src": "^/node-api/orders/[^/]+$",
+      "methods": ["GET"]
+    },
+    {
+      "src": "^/node-api/health$",
+      "methods": ["GET"]
+    }
+  ]
+}

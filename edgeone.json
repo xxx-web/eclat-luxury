@@ -1,0 +1,52 @@
+{
+  "name": "eclat-luxury",
+  "version": "1.0.0",
+  "description": "ÉCLAT 奢侈品网站",
+  "build": {
+    "command": "",
+    "output": "."
+  },
+  "kv": {
+    "bindings": [
+      {
+        "name": "USERS_KV",
+        "id": "users_kv",
+        "description": "用户数据存储"
+      },
+      {
+        "name": "SESSIONS_KV",
+        "id": "sessions_kv",
+        "description": "用户会话存储"
+      },
+      {
+        "name": "PRODUCTS_KV",
+        "id": "products_kv",
+        "description": "产品数据存储"
+      },
+      {
+        "name": "ORDERS_KV",
+        "id": "orders_kv",
+        "description": "订单数据存储"
+      }
+    ]
+  },
+  "headers": {
+    "/*.html": {
+      "Cache-Control": "public, max-age=3600",
+      "X-Frame-Options": "DENY"
+    },
+    "/api/*": {
+      "Cache-Control": "no-cache",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization"
+    }
+  },
+  "redirects": [
+    {
+      "source": "/home",
+      "destination": "/",
+      "type": 301
+    }
+  ]
+}

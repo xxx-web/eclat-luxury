@@ -1,0 +1,13 @@
+{
+  "name": "eclat-luxury-node",
+  "version": "1.0.0",
+  "description": "ÉCLAT Node Functions - 订单处理",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.0",
+    "uuid": "^9.0.0"
+  }
+}
