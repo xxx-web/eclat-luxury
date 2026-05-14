@@ -1,0 +1,19 @@
+{
+  "name": "eclat-luxury",
+  "version": "1.0.0",
+  "description": "ÉCLAT 甄选奢品 - 全栈奢侈品电商平台",
+  "main": "index.html",
+  "scripts": {
+    "dev": "edgeone pages dev",
+    "deploy": "edgeone pages deploy"
+  },
+  "keywords": [
+    "luxury",
+    "ecommerce",
+    "edge-functions"
+  ],
+  "author": "ÉCLAT",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {}
+}
