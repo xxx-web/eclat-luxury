@@ -1,19 +1,37 @@
 {
-  "name": "eclat-luxury",
-  "version": "1.0.0",
-  "description": "ÉCLAT 甄选奢品 - 全栈奢侈品电商平台",
-  "main": "index.html",
+  "name": "eclat-luxury-react",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "dev": "edgeone pages dev",
-    "deploy": "edgeone pages deploy"
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
   },
-  "keywords": [
-    "luxury",
-    "ecommerce",
-    "edge-functions"
-  ],
-  "author": "ÉCLAT",
-  "license": "MIT",
-  "devDependencies": {},
-  "dependencies": {}
+  "dependencies": {
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-router-dom": "^7.15.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/vite": "^4.3.0",
+    "@types/node": "^24.12.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "eslint": "^10.3.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "framer-motion": "^12.38.0",
+    "globals": "^17.6.0",
+    "lucide-react": "^1.16.0",
+    "rollup-plugin-visualizer": "^6.0.11",
+    "tailwindcss": "^4.3.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.59.2",
+    "vite": "^8.0.12"
+  }
 }
