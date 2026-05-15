@@ -3,24 +3,4 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "nodeVersion": "20",
-  "kvNamespaces": [
-    { "binding": "USERS_KV", "id": "users_kv" },
-    { "binding": "SESSIONS_KV", "id": "sessions_kv" },
-    { "binding": "PRODUCTS_KV", "id": "products_kv" },
-    { "binding": "ORDERS_KV", "id": "orders_kv" }
-  ],
-  "headers": [
-    {
-      "source": "/api/*",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache" }
-      ]
-    },
-    {
-      "source": "/assets/*",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    }
-  ]
 }
