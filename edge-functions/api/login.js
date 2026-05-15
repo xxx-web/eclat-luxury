@@ -1,33 +1,16 @@
 /**
  * EdgeOne Edge Function - 用户登录
+ * 使用 KV 存储用户数据（密码已哈希验证）
  */
 
-// 共享内存存储
-if (!globalThis.__ECLAT_MEMORY__) {
-  globalThis.__ECLAT_MEMORY__ = {
-    users: new Map(),
-    sessions: new Map()
-  };
-}
-const mem = globalThis.__ECLAT_MEMORY__;
-
-export async function onRequest(context) {
-  const { request, env } = context;
-
-  if (request.method !== 'POST') {
-    return new Response(JSON.stringify({
-      success: false,
-      message: '只支持 POST 请求'
-    }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-
+export async function onRequestPost(context) {
   try {
+    const { request, env } = context;
     const data = await request.json();
+
     const { email, password } = data;
 
+    // 验证必填字段
     if (!email || !password) {
       return new Response(JSON.stringify({
         success: false,
@@ -38,19 +21,18 @@ export async function onRequest(context) {
       });
     }
 
-    // 查找用户
-    let userStr = null;
-    try {
-      if (env && env.USERS_KV) {
-        userStr = await env.USERS_KV.get(`user:${email}`);
-      }
-    } catch (e) {}
-
-    if (!userStr) {
-      const memUser = mem.users.get(`user:${email}`);
-      if (memUser) userStr = memUser;
+    // 从 KV 获取用户数据
+    if (!env.USERS_KV) {
+      return new Response(JSON.stringify({
+        success: false,
+        message: '服务暂不可用'
+      }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
+    const userStr = await env.USERS_KV.get(`user:${email}`);
     if (!userStr) {
       return new Response(JSON.stringify({
         success: false,
@@ -63,7 +45,7 @@ export async function onRequest(context) {
 
     const userData = JSON.parse(userStr);
 
-    // 密码验证
+    // ✅ 密码哈希验证（使用 Web Crypto API）
     const encoder = new TextEncoder();
     const passwordData = encoder.encode(password);
     const hashBuffer = await crypto.subtle.digest('SHA-256', passwordData);
@@ -80,24 +62,32 @@ export async function onRequest(context) {
       });
     }
 
-    // 生成 token
+    // 生成 session token
     const sessionToken = `session_${Date.now()}_${Math.random().toString(36).substr(2, 16)}`;
-    const sessionData = {
-      userId: userData.id,
-      email: userData.email,
-      createdAt: new Date().toISOString()
-    };
 
-    // 保存 session
-    try {
-      if (env && env.SESSIONS_KV) {
-        await env.SESSIONS_KV.put(`session:${sessionToken}`, JSON.stringify(sessionData), { expirationTtl: 604800 });
-      }
-    } catch (e) {}
+    // 存储 session 到 KV（7天过期）
+    if (env.SESSIONS_KV) {
+      const sessionData = {
+        userId: userData.id,
+        email: userData.email,
+        createdAt: new Date().toISOString()
+      };
 
-    mem.sessions.set(`session:${sessionToken}`, JSON.stringify(sessionData));
+      await env.SESSIONS_KV.put(
+        `session:${sessionToken}`,
+        JSON.stringify(sessionData),
+        { expirationTtl: 604800 }
+      );
+    }
 
+    // 返回成功响应（不返回密码）
     const { password: _, ...userWithoutPassword } = userData;
+
+    // ✅ Cookie 添加 Secure + SameSite 标志
+    const isProduction = request.url.includes('https');
+    const cookieFlags = isProduction
+      ? 'Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800'
+      : 'Path=/; HttpOnly; SameSite=Strict; Max-Age=604800';
 
     return new Response(JSON.stringify({
       success: true,
@@ -105,13 +95,16 @@ export async function onRequest(context) {
       user: userWithoutPassword,
       token: sessionToken
     }), {
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        'Set-Cookie': `session=${sessionToken}; ${cookieFlags}`
+      }
     });
 
   } catch (error) {
     return new Response(JSON.stringify({
       success: false,
-      message: '服务器错误: ' + error.message
+      message: '服务器错误，请稍后重试'
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

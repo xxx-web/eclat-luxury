@@ -158,23 +158,7 @@ async function callAIAPI(message, history = []) {
   }
 }
 
-export async function onRequest(context) {
-  const { request } = context;
-
-  if (request.method !== 'POST') {
-    return new Response(JSON.stringify({
-      success: false,
-      message: '只支持 POST 请求'
-    }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-
-  return handlePost(context);
-}
-
-async function handlePost(context) {
+export async function onRequestPost(context) {
   try {
     const { request, env } = context;
     const body = await request.json();

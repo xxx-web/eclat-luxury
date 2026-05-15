@@ -1,57 +1,44 @@
 /**
  * EdgeOne Edge Function - 用户登出
+ * 清除 session
  */
 
-// 共享内存存储
-if (!globalThis.__ECLAT_MEMORY__) {
-  globalThis.__ECLAT_MEMORY__ = {
-    users: new Map(),
-    sessions: new Map()
-  };
-}
-const mem = globalThis.__ECLAT_MEMORY__;
-
-export async function onRequest(context) {
-  const { request, env } = context;
-
-  if (request.method !== 'POST') {
-    return new Response(JSON.stringify({
-      success: false,
-      message: '只支持 POST 请求'
-    }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-
+export async function onRequestPost(context) {
   try {
+    const { request, env } = context;
+
+    // 从 Cookie 或请求头获取 session token
+    const cookie = request.headers.get('Cookie') || '';
+    const sessionMatch = cookie.match(/session=([^;]+)/);
     const authHeader = request.headers.get('Authorization');
+
     let sessionToken = null;
 
-    if (authHeader && authHeader.startsWith('Bearer ')) {
+    if (sessionMatch) {
+      sessionToken = sessionMatch[1];
+    } else if (authHeader && authHeader.startsWith('Bearer ')) {
       sessionToken = authHeader.substring(7);
     }
 
-    if (sessionToken) {
-      try {
-        if (env && env.SESSIONS_KV) {
-          await env.SESSIONS_KV.delete(`session:${sessionToken}`);
-        }
-      } catch (e) {}
-      mem.sessions.delete(`session:${sessionToken}`);
+    if (sessionToken && env.SESSIONS_KV) {
+      // 从 KV 删除 session
+      await env.SESSIONS_KV.delete(`session:${sessionToken}`);
     }
 
     return new Response(JSON.stringify({
       success: true,
       message: '登出成功'
     }), {
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        'Set-Cookie': 'session=; Path=/; HttpOnly; Max-Age=0'
+      }
     });
 
   } catch (error) {
     return new Response(JSON.stringify({
       success: false,
-      message: '服务器错误'
+      message: '服务器错误，请稍后重试'
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

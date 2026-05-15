@@ -3,20 +3,6 @@
  * 从购物车创建新订单
  */
 
-// 共享内存存储（KV 未绑定时的降级方案）
-if (!globalThis.__ECLAT_MEMORY__) {
-  globalThis.__ECLAT_MEMORY__ = {
-    users: new Map(),
-    sessions: new Map(),
-    orders: new Map()
-  };
-}
-// 确保 orders 存在（兼容其他文件初始化的结构）
-if (!globalThis.__ECLAT_MEMORY__.orders) {
-  globalThis.__ECLAT_MEMORY__.orders = new Map();
-}
-const mem = globalThis.__ECLAT_MEMORY__;
-
 export async function onRequestPost(context) {
   try {
     const { request, env } = context;
@@ -35,18 +21,8 @@ export async function onRequestPost(context) {
       });
     }
 
-    // 验证用户是否存在（优先 KV，降级内存）
-    let userStr = null;
-    try {
-      if (env && env.USERS_KV) {
-        userStr = await env.USERS_KV.get(`user:${userId}`);
-      }
-    } catch (e) {}
-
-    if (!userStr) {
-      userStr = mem.users.get(`user:${userId}`);
-    }
-
+    // 验证用户是否存在
+    const userStr = await env.USERS_KV.get(`user:${userId}`);
     if (!userStr) {
       return new Response(JSON.stringify({
         success: false,
@@ -73,28 +49,14 @@ export async function onRequestPost(context) {
       updatedAt: new Date().toISOString()
     };
 
-    const orderJson = JSON.stringify(orderData);
+    // 存储到 KV
+    await env.ORDERS_KV.put(`order:${orderId}`, JSON.stringify(orderData));
 
-    // 存储到 KV（如果已绑定）
-    try {
-      if (env && env.ORDERS_KV) {
-        await env.ORDERS_KV.put(`order:${orderId}`, orderJson);
-
-        // 添加到用户订单列表
-        const userOrdersStr = await env.ORDERS_KV.get(`user_orders:${userId}`);
-        const userOrders = userOrdersStr ? JSON.parse(userOrdersStr) : [];
-        userOrders.unshift(orderId);
-        await env.ORDERS_KV.put(`user_orders:${userId}`, JSON.stringify(userOrders));
-      }
-    } catch (e) {
-      console.error('KV storage error:', e);
-    }
-
-    // 同时保存到内存（降级/备份）
-    mem.orders.set(`order:${orderId}`, orderJson);
-    const memUserOrders = mem.orders.get(`user_orders:${userId}`) || [];
-    memUserOrders.unshift(orderId);
-    mem.orders.set(`user_orders:${userId}`, memUserOrders);
+    // 添加到用户订单列表
+    const userOrdersStr = await env.ORDERS_KV.get(`user_orders:${userId}`);
+    const userOrders = userOrdersStr ? JSON.parse(userOrdersStr) : [];
+    userOrders.unshift(orderId);
+    await env.ORDERS_KV.put(`user_orders:${userId}`, JSON.stringify(userOrders));
 
     return new Response(JSON.stringify({
       success: true,
@@ -104,17 +66,12 @@ export async function onRequestPost(context) {
       headers: { 'Content-Type': 'application/json' }
     });
 
-  }catch (error) {
+  } catch (error) {
     console.error('Create order error:', error);
-    const errorDetails = {
+    return new Response(JSON.stringify({
       success: false,
-      message: '创建订单失败: ' + (error.message || '未知错误'),
-      debug: {
-        stack: error.stack,
-        name: error.name
-      }
-    };
-    return new Response(JSON.stringify(errorDetails), {
+      message: '创建订单失败'
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

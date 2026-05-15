@@ -1,16 +1,8 @@
 /**
  * ÉCLAT Edge Functions 中间件
  * 功能：CORS 处理、认证检查、请求/响应日志、安全头
+ * 文件名：_middleware.js（EdgeOne Pages 会自动加载）
  */
-
-// 共享内存存储
-if (!globalThis.__ECLAT_MEMORY__) {
-  globalThis.__ECLAT_MEMORY__ = {
-    users: new Map(),
-    sessions: new Map()
-  };
-}
-const mem = globalThis.__ECLAT_MEMORY__;
 
 // 需要登录才能访问的路由
 const PROTECTED_ROUTES = [
@@ -63,32 +55,24 @@ export async function onRequest(context) {
       }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' }
-      });
+      };
     }
 
     const token = authHeader.replace('Bearer ', '');
-    let sessionValid = false;
-
     try {
-      if (env && env.SESSIONS_KV) {
-        const sessionData = await env.SESSIONS_KV.get(`session:${token}`);
-        if (sessionData) sessionValid = true;
+      const sessionData = await env.SESSIONS_KV?.get(`session:${token}`);
+      if (!sessionData) {
+        return new Response(JSON.stringify({
+          success: false,
+          message: '登录已过期，请重新登录'
+        }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        };
       }
-    } catch (e) {}
-
-    if (!sessionValid) {
-      const memSession = mem.sessions.get(`session:${token}`);
-      if (memSession) sessionValid = true;
-    }
-
-    if (!sessionValid) {
-      return new Response(JSON.stringify({
-        success: false,
-        message: '登录已过期，请重新登录'
-      }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    } catch (e) {
+      console.warn('[WARN] Token validation skipped:', e.message);
+      // 降级处理：KV 不可用时放行，由具体 API 处理认证
     }
   }
 
@@ -102,7 +86,7 @@ export async function onRequest(context) {
       }), {
         status: 403,
         headers: { 'Content-Type': 'application/json' }
-      });
+      };
     }
   }
 

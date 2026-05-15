@@ -20,6 +20,16 @@ export async function onRequestGet(context) {
     }
 
     // 从 KV 获取订单数据
+    if (!env.ORDERS_KV) {
+      return new Response(JSON.stringify({
+        success: false,
+        message: '服务暂不可用'
+      }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const orderStr = await env.ORDERS_KV.get(`order:${orderId}`);
 
     if (!orderStr) {

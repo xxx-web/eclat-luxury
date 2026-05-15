@@ -19,6 +19,16 @@ export async function onRequestGet(context) {
       });
     }
 
+    // 如果 KV 未绑定，返回空订单列表
+    if (!env.USERS_KV || !env.ORDERS_KV) {
+      return new Response(JSON.stringify({
+        success: true,
+        orders: []
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     // 验证用户是否存在
     const userStr = await env.USERS_KV.get(`user:${userId}`);
     if (!userStr) {

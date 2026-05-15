@@ -3,23 +3,7 @@
  * 支持筛选、排序、分页
  */
 
-export async function onRequest(context) {
-  const { request } = context;
-
-  if (request.method !== 'GET') {
-    return new Response(JSON.stringify({
-      success: false,
-      message: '只支持 GET 请求'
-    }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-
-  return handleGet(context);
-}
-
-async function handleGet(context) {
+export async function onRequestGet(context) {
   try {
     const { request, env } = context;
     const url = new URL(request.url);

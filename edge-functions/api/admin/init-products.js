@@ -69,6 +69,16 @@ export async function onRequestPost(context) {
     }
 
     // 检查是否已有数据
+    if (!env.PRODUCTS_KV) {
+      return new Response(JSON.stringify({
+        success: false,
+        message: 'KV 存储未绑定'
+      }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const existingData = await env.PRODUCTS_KV.get('products');
     if (existingData) {
       return new Response(JSON.stringify({
