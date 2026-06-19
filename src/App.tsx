@@ -3,6 +3,8 @@ import { AppProvider, useApp } from './context/AppContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { NavBar } from './components/NavBar';
 import { HeroSection } from './components/HeroSection';
+import { SectionDivider } from './components/SectionDivider';
+import { Marquee } from './components/Marquee';
 import { CategorySection } from './components/CategorySection';
 import { FeaturedProducts } from './components/FeaturedProducts';
 import { BrandStorySection } from './components/BrandStorySection';
@@ -21,6 +23,9 @@ function AppInner() {
 
       <main>
         <HeroSection />
+        <SectionDivider />
+        <Marquee />
+        <SectionDivider />
         <CategorySection />
         <FeaturedProducts />
         <BrandStorySection />
