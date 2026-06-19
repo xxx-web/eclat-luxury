@@ -4,6 +4,32 @@ import { BlurText } from './BlurText';
 export function HeroSection() {
   return (
     <section id="hero" className="relative min-h-screen flex items-center overflow-hidden pt-18">
+      {/* Left decorative shapes (v29 style) */}
+      <div
+        className="hidden md:block absolute pointer-events-none z-[1]"
+        style={{
+          top: '15%',
+          left: '4%',
+          width: '320px',
+          height: '320px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(155,127,255,0.08) 0%, transparent 60%)',
+          border: '1px solid rgba(155,127,255,0.06)',
+        }}
+      />
+      <div
+        className="hidden md:block absolute pointer-events-none z-[1]"
+        style={{
+          top: '40%',
+          left: '0%',
+          width: '180px',
+          height: '420px',
+          background: 'linear-gradient(135deg, rgba(155,127,255,0.06) 0%, rgba(212,168,75,0.03) 100%)',
+          border: '1px solid rgba(155,127,255,0.05)',
+          borderRadius: '2px',
+        }}
+      />
+
       {/* Content */}
       <div className="relative z-20 w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-16">
         <div className="max-w-3xl" style={{ paddingLeft: '5%' }}>
@@ -227,8 +253,12 @@ export function HeroSection() {
           top: '6%',
           width: '180px',
           height: '180px',
+          borderRadius: '50%',
+          border: '1px solid rgba(155,127,255,0.12)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           animation: 'gemFloat 6s ease-in-out infinite',
-          filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))',
         }}
       >
         <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full block">
@@ -261,8 +291,12 @@ export function HeroSection() {
           bottom: '12%',
           width: '200px',
           height: '200px',
+          borderRadius: '50%',
+          border: '1px solid rgba(212,168,75,0.12)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           animation: 'gemFloat 7s ease-in-out infinite reverse',
-          filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.15))',
         }}
       >
         <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full block">

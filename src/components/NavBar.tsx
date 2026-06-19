@@ -2,11 +2,16 @@ import { useState, useEffect } from 'react';
 import { Menu, X, ShoppingCart, Heart, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../hooks/useAuth';
+import { AuthModal } from './AuthModal';
 
 export function NavBar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const { wishlist, getCartCount, toggleCart } = useApp();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,11 +22,10 @@ export function NavBar() {
   }, []);
 
   const navLinks = [
-    { label: '甄选臻品', href: '#products' },
-    { label: '珠宝世家', href: '#categories' },
-    { label: '品牌故事', href: '#story' },
-    { label: '工艺传承', href: '#craft' },
-    { label: '预约鉴赏', href: '#appointment' },
+    { label: '品类', href: '#categories' },
+    { label: '臻选', href: '#products' },
+    { label: '品牌', href: '#story' },
+    { label: '评价', href: '#testimonials' },
   ];
 
   return (
@@ -100,6 +104,70 @@ export function NavBar() {
           >
             {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
+
+          {/* Auth Buttons - Desktop only */}
+          {user ? (
+            <div className="hidden md:flex items-center gap-3">
+              <span className="text-sm text-foreground/60" style={{ letterSpacing: '0.05em' }}>
+                {user.name}
+              </span>
+              <button
+                onClick={logout}
+                className="px-4 py-1.5 rounded-full text-[0.78rem] tracking-[0.1em] uppercase text-foreground/60 hover:text-foreground transition-colors"
+                style={{
+                  border: '1px solid rgba(240,236,230,0.12)',
+                }}
+              >
+                退出
+              </button>
+            </div>
+          ) : (
+            <div className="hidden md:flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setAuthMode('login');
+                  setIsAuthModalOpen(true);
+                }}
+                className="px-4 py-1.5 rounded-full text-[0.78rem] tracking-[0.1em] uppercase text-foreground/60 hover:text-foreground transition-colors"
+                style={{
+                  border: '1px solid rgba(240,236,230,0.12)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(155,127,255,0.5)';
+                  e.currentTarget.style.color = '#B8A8FF';
+                  e.currentTarget.style.background = 'rgba(155,127,255,0.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(240,236,230,0.12)';
+                  e.currentTarget.style.color = '';
+                  e.currentTarget.style.background = '';
+                }}
+              >
+                登录
+              </button>
+              <button
+                onClick={() => {
+                  setAuthMode('register');
+                  setIsAuthModalOpen(true);
+                }}
+                className="px-4 py-1.5 rounded-full text-[0.78rem] tracking-[0.1em] uppercase text-foreground transition-colors"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(155,127,255,0.15), rgba(212,168,75,0.1))',
+                  border: '1px solid rgba(155,127,255,0.3)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(155,127,255,0.25), rgba(212,168,75,0.15))';
+                  e.currentTarget.style.borderColor = 'rgba(155,127,255,0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(155,127,255,0.15), rgba(212,168,75,0.1))';
+                  e.currentTarget.style.borderColor = 'rgba(155,127,255,0.3)';
+                }}
+              >
+                注册
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -124,10 +192,43 @@ export function NavBar() {
                   {link.label}
                 </a>
               ))}
+
+              {/* Mobile Auth Buttons */}
+              {!user && (
+                <div className="flex flex-col gap-3 pt-4 border-t border-border">
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setAuthMode('login');
+                      setIsAuthModalOpen(true);
+                    }}
+                    className="text-lg tracking-[0.1em] uppercase text-foreground/60 hover:text-foreground transition-colors pb-4 border-b border-border text-left"
+                  >
+                    登录
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setAuthMode('register');
+                      setIsAuthModalOpen(true);
+                    }}
+                    className="text-lg tracking-[0.1em] uppercase text-foreground hover:text-primary transition-colors pb-4 border-b border-border text-left"
+                  >
+                    注册
+                  </button>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        initialMode={authMode}
+      />
     </motion.nav>
   );
 }
