@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Play } from 'lucide-react';
 import { BlurText } from './BlurText';
+import { useLazyVideo } from '../hooks/useLazyVideo';
 
 export function HeroSection() {
   const videoRef = useLazyVideo();
