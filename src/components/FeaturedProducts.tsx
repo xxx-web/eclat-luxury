@@ -120,6 +120,15 @@ export function FeaturedProducts() {
   const totalPages = Math.ceil(sorted.length / itemsPerPage);
   const paged = sorted.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to products section top for better UX
+    const el = document.getElementById('products');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const isInCart = (id: string) => cart.some((i) => i.id === id);
 
   return (
@@ -303,7 +312,7 @@ export function FeaturedProducts() {
         <div className="flex items-center justify-center gap-3 mt-12">
           <button
             disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => p - 1)}
+            onClick={() => goToPage(currentPage - 1)}
             className="px-4 py-2 rounded-lg text-xs transition-all duration-300 text-foreground/60 hover:text-foreground disabled:opacity-30"
             style={{ background: 'rgba(26,26,46,0.6)', border: '1px solid rgba(240,236,230,0.08)' }}
           >
@@ -313,7 +322,7 @@ export function FeaturedProducts() {
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
               <button
                 key={p}
-                onClick={() => setCurrentPage(p)}
+                onClick={() => goToPage(p)}
                 className={`w-10 h-10 rounded-lg text-xs transition-all duration-300 ${
                   currentPage === p ? 'text-foreground' : 'text-foreground/50 hover:text-foreground'
                 }`}
@@ -329,7 +338,7 @@ export function FeaturedProducts() {
           </div>
           <button
             disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => p + 1)}
+            onClick={() => goToPage(currentPage + 1)}
             className="px-4 py-2 rounded-lg text-xs transition-all duration-300 text-foreground/60 hover:text-foreground disabled:opacity-30"
             style={{ background: 'rgba(26,26,46,0.6)', border: '1px solid rgba(240,236,230,0.08)' }}
           >
