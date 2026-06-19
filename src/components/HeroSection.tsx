@@ -8,6 +8,51 @@ export function HeroSection() {
 
   return (
     <section id="hero" className="relative min-h-screen flex items-center overflow-hidden pt-18">
+      {/* Background Decorations */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        {/* Purple orb */}
+        <div
+          className="absolute w-[500px] h-[500px] rounded-full"
+          style={{
+            top: '-10%', left: '-5%',
+            background: 'radial-gradient(circle, rgba(155,127,255,0.12) 0%, transparent 70%)',
+            filter: 'blur(80px)',
+            opacity: 0.4,
+            animation: 'orbFloat 18s ease-in-out infinite',
+          }}
+        />
+        {/* Gold orb */}
+        <div
+          className="absolute w-[400px] h-[400px] rounded-full"
+          style={{
+            top: '30%', right: '-8%',
+            background: 'radial-gradient(circle, rgba(212,168,75,0.08) 0%, transparent 70%)',
+            filter: 'blur(80px)',
+            opacity: 0.4,
+            animation: 'orbFloat 18s ease-in-out infinite -6s',
+          }}
+        />
+        {/* Gradient lines */}
+        <div className="absolute top-[10%] left-[8%] w-px h-[40%]" style={{
+          background: 'linear-gradient(180deg, transparent, rgba(155,127,255,0.12), transparent)',
+          animation: 'lineGlow 8s ease-in-out infinite',
+        }} />
+        <div className="absolute top-[20%] right-[12%] w-px h-[35%]" style={{
+          background: 'linear-gradient(180deg, transparent, rgba(155,127,255,0.12), transparent)',
+          animation: 'lineGlow 8s ease-in-out infinite -3s',
+        }} />
+      </div>
+
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="/images/hero-bg.jpg"
+          alt=""
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80" />
+      </div>
+
       {/* Content */}
       <div className="relative z-20 w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-16">
         <div className="max-w-3xl" style={{ paddingLeft: '5%' }}>
@@ -99,6 +144,17 @@ export function HeroSection() {
           </motion.p>
         </div>
       </div>
+
+      {/* Scroll Indicator */}
+      <motion.div
+        animate={{ y: [0, 10, 0] }}
+        transition={{ duration: 2, repeat: Infinity }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20"
+      >
+        <div className="w-px h-16" style={{
+          background: 'linear-gradient(180deg, rgba(155,127,255,0.6), transparent)',
+        }} />
+      </motion.div>
     </section>
   );
 }
