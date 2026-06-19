@@ -1,9 +1,89 @@
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { BlurText } from './BlurText';
 
 export function HeroSection() {
+  // Generate stars once (v29 style: 8 big + 10 medium + 10 small = 28 stars)
+  const stars = useMemo(() => {
+    const list: Array<{ top: number; left: number; size: 'big' | 'medium' | 'small'; dur: number; delay: number; minOp?: number; maxOp?: number }> = [];
+    const types: Array<{ size: 'big' | 'medium' | 'small'; count: number }> = [
+      { size: 'big', count: 8 },
+      { size: 'medium', count: 10 },
+      { size: 'small', count: 10 },
+    ];
+    types.forEach(({ size, count }) => {
+      for (let i = 0; i < count; i++) {
+        const dur = 2 + Math.random() * 3;
+        const delay = Math.random() * 4;
+        const star: typeof list[number] = {
+          top: Math.random() * 100,
+          left: Math.random() * 100,
+          size,
+          dur,
+          delay,
+        };
+        if (size === 'big') {
+          star.minOp = 0.3 + Math.random() * 0.15;
+          star.maxOp = 0.9 + Math.random() * 0.1;
+        }
+        list.push(star);
+      }
+    });
+    return list;
+  }, []);
+
   return (
-    <section id="hero" className="relative min-h-screen flex items-center overflow-hidden pt-18">
+    <section
+      id="hero"
+      className="relative min-h-screen flex items-center overflow-hidden pt-18"
+      style={{
+        background:
+          'radial-gradient(ellipse 70% 60% at 10% 50%, rgba(155,127,255,0.07) 0%, transparent 70%),' +
+          'radial-gradient(ellipse 50% 70% at 35% 50%, rgba(155,127,255,0.04) 0%, transparent 60%),' +
+          'radial-gradient(ellipse 60% 80% at 85% 50%, rgba(212,168,75,0.05) 0%, transparent 70%),' +
+          '#0d0521',
+      }}
+    >
+      {/* Top divider line */}
+      <div
+        className="absolute top-0 left-0 right-0 h-px pointer-events-none z-[1]"
+        style={{
+          background:
+            'linear-gradient(90deg, transparent, rgba(155,127,255,0.12), rgba(212,168,75,0.12), transparent)',
+        }}
+      />
+
+      {/* Background stars (v29 style: 28 stars) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-[1]">
+        {stars.map((star, i) => {
+          const sizeClass =
+            star.size === 'big' ? 'w-[3px] h-[3px]' :
+            star.size === 'medium' ? 'w-[2px] h-[2px]' :
+            'w-px h-px';
+          const shadow =
+            star.size === 'big'
+              ? '0 0 4px rgba(255,255,255,0.8), 0 0 8px rgba(155,127,255,0.4)'
+              : 'none';
+          return (
+            <div
+              key={i}
+              className={`absolute rounded-full bg-white ${sizeClass}`}
+              style={{
+                top: `${star.top}%`,
+                left: `${star.left}%`,
+                boxShadow: shadow,
+                ['--dur' as string]: `${star.dur.toFixed(1)}s`,
+                ['--delay' as string]: `${star.delay.toFixed(1)}s`,
+                ['--min-op' as string]: star.minOp ? star.minOp.toFixed(2) : '0.2',
+                ['--max-op' as string]: star.maxOp ? star.maxOp.toFixed(2) : '0.9',
+                animation: `starTwinkle ${star.dur.toFixed(1)}s ease-in-out infinite`,
+                animationDelay: `${star.delay.toFixed(1)}s`,
+              }}
+            />
+          );
+        })}
+      </div>
+
       {/* Left decorative shapes (v29 style) */}
       <div
         className="hidden md:block absolute pointer-events-none z-[1]"
@@ -323,6 +403,14 @@ export function HeroSection() {
           <circle cx="18" cy="5" r="0.5" fill="rgba(255,255,255,0.6)" />
         </svg>
       </div>
+
+      {/* Bottom divider line (v29 style) */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-px pointer-events-none z-[1]"
+        style={{
+          background: 'linear-gradient(90deg, transparent, rgba(240,236,230,0.12), transparent)',
+        }}
+      />
 
       {/* Scroll Indicator */}
       <motion.div
