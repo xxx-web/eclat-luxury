@@ -38,15 +38,20 @@ export function NavBar() {
       style={{ borderBottom: isScrolled ? '1px solid rgba(240,236,230,0.08)' : 'none' }}
     >
       <div className="max-w-7xl mx-auto px-6 md:px-10 lg:px-16 flex items-center justify-between h-full">
-        {/* Logo */}
-        <div className="luxury-glass rounded-full px-4 py-2">
-          <span className="font-heading italic text-xl" style={{
+        {/* Logo - v29 style: simple gradient text, no glass pill */}
+        <a
+          href="#hero"
+          className="font-serif text-[1.55rem] font-medium"
+          style={{
+            letterSpacing: '0.12em',
             background: 'linear-gradient(135deg, #B8A8FF, #F0CC8A)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
-          }}>ÉCLAT · 甄选奢品</span>
-        </div>
+          }}
+        >
+          ÉCLAT
+        </a>
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
