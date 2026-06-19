@@ -84,7 +84,7 @@ export function HeroSection() {
         })}
       </div>
 
-      {/* Left decorative shapes (v29 style) */}
+      {/* Left decorative circle (v29 style) */}
       <div
         className="hidden md:block absolute pointer-events-none z-[1]"
         style={{
@@ -97,22 +97,10 @@ export function HeroSection() {
           border: '1px solid rgba(155,127,255,0.06)',
         }}
       />
-      <div
-        className="hidden md:block absolute pointer-events-none z-[1]"
-        style={{
-          top: '40%',
-          left: '0%',
-          width: '180px',
-          height: '420px',
-          background: 'linear-gradient(135deg, rgba(155,127,255,0.06) 0%, rgba(212,168,75,0.03) 100%)',
-          border: '1px solid rgba(155,127,255,0.05)',
-          borderRadius: '2px',
-        }}
-      />
 
       {/* Content */}
       <div className="relative z-20 w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-16">
-        <div className="max-w-3xl" style={{ paddingLeft: '5%' }}>
+        <div className="w-full max-w-3xl md:max-w-2xl" style={{ paddingLeft: '5%' }}>
           {/* Left accent line */}
           <div
             className="absolute left-6 top-0 bottom-0 w-0.5 rounded-full"
