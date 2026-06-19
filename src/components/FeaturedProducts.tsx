@@ -1,297 +1,342 @@
-/**
- * 精选产品组件 - 性能优化版本
- * 使用 React.memo、useMemo、useCallback 优化渲染
- * 支持图片懒加载
- */
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useApp } from '../context/AppContext';
+import { Star, Eye, Heart, ShoppingCart, Plus, Minus } from 'lucide-react';
 
-import React, { useState, useCallback, useMemo, lazy, Suspense } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight, Heart } from 'lucide-react';
-
-// 产品类型定义
-interface Product {
-  id?: number;
-  name: string;
-  category?: string;
-  price: number;
-  desc?: string;
-  details?: string;
-  img?: string;
-  image?: string;
-  tag?: string;
-  rating?: number;
-  slug: string;
-  material?: string;
-  priceRange?: string;
-}
-
-// 懒加载图片组件
-const LazyImage = lazy(() => Promise.resolve({
-  default: ({ src, alt, className }: { src: string; alt: string; className?: string }) => {
-    return (
-      <img
-        src={src}
-        alt={alt}
-        loading="lazy"
-        decoding="async"
-        className={className}
-      />
-    );
-  }
-}));
-
-// 产品数据
-const products: Product[] = [
+const allProducts = [
   {
-    id: 1,
-    name: 'Lune Pearl Drop',
-    category: 'jewelry',
-    price: 1280,
-    desc: 'Elegant pearl earrings',
-    details: 'Freshwater pearl, 18k gold',
-    img: 'https://cdnstatic.tencentcs.com/edgeone/pages/product-activities/jewelry/Lune%20Pearl%20Drop.png',
-    tag: 'Popular',
-    rating: 4.8,
-    slug: 'lune-pearl-drop',
-    material: 'Round Cultured Pearl / 18k Gold',
-    priceRange: 'mid'
-  },
-  {
-    id: 2,
-    name: 'Noir Halo Stud',
-    category: 'jewelry',
-    price: 2450,
-    desc: 'Diamond stud earrings',
-    details: 'Diamond, white gold',
-    img: 'https://cdnstatic.tencentcs.com/edgeone/pages/product-activities/jewelry/Noir%20Halo%20Stud.png',
-    tag: 'New',
+    id: 'yueguang',
+    name: '月光之泪项链',
+    category: '珠宝臻品',
+    price: 12800,
     rating: 4.9,
-    slug: 'noir-halo-stud',
-    material: 'Diamond / White Gold',
-    priceRange: 'high'
+    img: '/images/yueguang.png',
+    desc: '以月光为灵感，甄选天然珍珠，匠心独运，宛如月华倾泻。',
+    tag: '甄选',
   },
   {
-    id: 3,
-    name: 'Atelier Ribbon Collar',
-    category: 'jewelry',
-    price: 4800,
-    desc: 'Ribbon-inspired necklace',
-    details: 'Pearl, sapphire, gold',
-    img: 'https://cdnstatic.tencentcs.com/edgeone/pages/product-activities/jewelry/Atelier%20Ribbon%20Collar.png',
-    tag: 'Exclusive',
+    id: 'gold_rose_earring',
+    name: '金玫瑰耳环',
+    category: '珠宝臻品',
+    price: 8600,
+    rating: 4.8,
+    img: '/images/gold_rose_earring.png',
+    desc: '18K金玫瑰造型，甄选钻石点缀，绽放优雅光芒。',
+    tag: '畅销',
+  },
+  {
+    id: 'emerald_ring',
+    name: '翡翠花园戒指',
+    category: '珠宝臻品',
+    price: 22500,
+    rating: 4.9,
+    img: '/images/emerald_ring.png',
+    desc: '甄选哥伦比亚祖母绿，配以钻石花园造型，奢华臻品。',
+    tag: '',
+  },
+  {
+    id: 'pearl_bracelet',
+    name: '珍珠手链',
+    category: '珠宝臻品',
+    price: 6800,
     rating: 4.7,
-    slug: 'atelier-ribbon-collar',
-    material: 'Pearl / Sapphire / Gold',
-    priceRange: 'high'
+    img: '/images/pearl_bracelet.png',
+    desc: '天然淡水珍珠，匠心串制，温润典雅，彰显品味。',
+    tag: '甄选',
   },
   {
-    id: 4,
-    name: 'Velours Earring',
-    category: 'jewelry',
-    price: 3900,
-    desc: 'South Sea pearl earrings',
-    details: 'South Sea pearl, diamond accent',
-    img: 'https://cdnstatic.tencentcs.com/edgeone/pages/product-activities/jewelry/Velours%20Earring.png',
-    tag: 'Recommended',
+    id: 'noir_absolu_perfume',
+    name: '黑夜Absolute',
+    category: '香水雅韵',
+    price: 3200,
     rating: 4.9,
-    slug: 'velours-earring',
-    material: 'South Sea Pearl / Diamond',
-    priceRange: 'high'
+    img: '/images/noir_absolu_perfume.png',
+    desc: '深邃黑夜中的绝对魅力，乌木与玫瑰的永恒对话。',
+    tag: '畅销',
   },
   {
-    id: 5,
-    name: 'Eclipse Ring',
-    category: 'jewelry',
-    price: 1960,
-    desc: 'Eclipse-inspired ring',
-    details: 'Pearl, diamond, gold',
-    img: 'https://cdnstatic.tencentcs.com/edgeone/pages/product-activities/jewelry/Eclipse%20Ring.png',
-    tag: 'Classic',
-    rating: 4.6,
-    slug: 'eclipse-ring',
-    material: 'Pearl / Diamond / Gold',
-    priceRange: 'mid'
-  },
-  {
-    id: 6,
-    name: 'Nocturne Cuff',
-    category: 'jewelry',
-    price: 2780,
-    desc: 'Nocturne-inspired cuff',
-    details: 'Brushed gold, pearl accent',
-    img: 'https://cdnstatic.tencentcs.com/edgeone/pages/product-activities/jewelry/Nocturne%20Cuff.png',
-    tag: 'Limited',
+    id: 'rose_celeste_perfume',
+    name: '天穹玫瑰',
+    category: '香水雅韵',
+    price: 2800,
     rating: 4.8,
-    slug: 'nocturne-cuff',
-    material: 'Brushed Gold / Pearl',
-    priceRange: 'mid'
-  }
+    img: '/images/rose_celeste_perfume.png',
+    desc: '来自天穹的玫瑰芬芳，清新花香，适合日常臻选。',
+    tag: '甄选',
+  },
+  {
+    id: 'bois_sacre_perfume',
+    name: '神圣之木',
+    category: '香水雅韵',
+    price: 3500,
+    rating: 4.7,
+    img: '/images/bois_sacre_perfume.png',
+    desc: '沉香与檀木的神圣交融，木质调中的臻品之作。',
+    tag: '',
+  },
+  {
+    id: 'quilted_tote_bag',
+    name: '菱格纹托特包',
+    category: '奢华手袋',
+    price: 18500,
+    rating: 4.8,
+    img: '/images/quilted_tote_bag.png',
+    desc: '经典菱格纹，甄选小牛皮，法国匠心工艺，永恒优雅。',
+    tag: '畅销',
+  },
+  {
+    id: 'woven_chain_bag',
+    name: '编织链条包',
+    category: '奢华手袋',
+    price: 12800,
+    rating: 4.7,
+    img: '/images/woven_chain_bag.png',
+    desc: '匠心编织皮革，金属链条点缀，现代与经典的完美交融。',
+    tag: '甄选',
+  },
 ];
 
-// 产品卡片组件（使用 React.memo 优化）
-interface ProductCardProps {
-  product: Product;
-  index: number;
-  isHovered: boolean;
-  onMouseEnter: (slug: string) => void;
-  onMouseLeave: () => void;
-}
+const filters = ['全部臻品', '珠宝臻品', '香水雅韵', '奢华手袋'];
+const sortOptions = ['默认排序', '价格从低到高', '价格从高到低', '评分最高'];
 
-const ProductCard = React.memo<ProductCardProps>(({ 
-  product, 
-  index, 
-  isHovered, 
-  onMouseEnter, 
-  onMouseLeave 
-}) => {
-  const handleViewProduct = useCallback(() => {
-    console.log('View product:', product.slug);
-  }, [product.slug]);
+export function FeaturedProducts() {
+  const [activeFilter, setActiveFilter] = useState('全部臻品');
+  const [sortBy, setSortBy] = useState('默认排序');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  const { addToCart, cart, wishlist, toggleWishlist } = useApp();
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.8, delay: index * 0.1 }}
-      className="luxury-glass group cursor-pointer"
-      onMouseEnter={() => onMouseEnter(product.slug)}
-      onMouseLeave={onMouseLeave}
-    >
-      {/* 产品图片 */}
-      <div className="aspect-[4/5] overflow-hidden relative">
-        <Suspense fallback={<div className="w-full h-full bg-gray-800 animate-pulse" />}>
-          <LazyImage
-            src={product.img || product.image || ''}
-            alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-          />
-        </Suspense>
-        
-        {/* 悬停覆盖层 */}
-        {isHovered && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute inset-0 bg-black/40 flex items-center justify-center gap-4"
-          >
-            <button 
-              className="luxury-glass w-12 h-12 rounded-full flex items-center justify-center text-foreground hover:text-primary transition-colors"
-              onClick={handleViewProduct}
-            >
-              <Heart size={20} />
-            </button>
-            <button className="luxury-glass px-6 py-3 rounded-full text-sm tracking-[0.1em] uppercase text-foreground hover:text-primary transition-colors">
-              View Piece
-            </button>
-          </motion.div>
-        )}
+  const filtered = activeFilter === '全部臻品'
+    ? [...allProducts]
+    : allProducts.filter((p) => p.category === activeFilter);
 
-        {/* 浏览次数 */}
-        <div className="absolute top-4 right-4 luxury-glass px-3 py-1 rounded-full">
-          <span className="text-xs text-foreground/60">
-            {Math.floor(Math.random() * 100) + 50} views
-          </span>
-        </div>
-      </div>
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === '价格从低到高') return a.price - b.price;
+    if (sortBy === '价格从高到低') return b.price - a.price;
+    if (sortBy === '评分最高') return b.rating - a.rating;
+    return 0;
+  });
 
-      {/* 产品信息 */}
-      <div className="p-6">
-        <h3 className="font-heading italic text-xl text-foreground mb-2">
-          {product.name}
-        </h3>
-        <p className="text-xs uppercase tracking-[0.2em] text-primary/80 mb-4">
-          {product.material}
-        </p>
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-foreground/80">
-            ¥{product.price.toLocaleString()}
-          </p>
-          <button className="text-primary hover:text-primary/80 transition-colors duration-300 flex items-center gap-2 group/btn">
-            <span className="text-sm">View Piece</span>
-            <ArrowRight 
-              size={16} 
-              className="group-hover/btn:translate-x-2 transition-transform duration-300" 
-            />
-          </button>
-        </div>
-      </div>
-    </motion.div>
-  );
-});
+  const totalPages = Math.ceil(sorted.length / itemsPerPage);
+  const paged = sorted.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-ProductCard.displayName = 'ProductCard';
-
-// 主组件
-const FeaturedProducts = React.memo(() => {
-  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
-
-  // 使用 useCallback 缓存事件处理函数
-  const handleMouseEnter = useCallback((slug: string) => {
-    setHoveredProduct(slug);
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setHoveredProduct(null);
-  }, []);
-
-  // 使用 useMemo 缓存产品网格渲染
-  const productGrid = useMemo(() => {
-    return products.map((product, index) => (
-      <ProductCard
-        key={product.slug}
-        product={product}
-        index={index}
-        isHovered={hoveredProduct === product.slug}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      />
-    ));
-  }, [products, hoveredProduct, handleMouseEnter, handleMouseLeave]);
+  const isInCart = (id: string) => cart.some((i) => i.id === id);
 
   return (
-    <section className="py-32 px-6 md:px-16 lg:px-24 bg-[#0a0a14]">
+    <section id="products" className="py-28 px-6 md:px-16 lg:px-24">
+      {/* Section Header */}
       <motion.div
-        initial={{ opacity: 0, y: 40 }}
+        initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.8 }}
-        className="max-w-7xl mx-auto"
+        className="text-center mb-16"
       >
-        {/* 标题区域 */}
-        <div className="text-center mb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="inline-block luxury-glass px-3 py-1 rounded-full mb-6"
+        <div className="flex items-center justify-center gap-4 mb-4">
+          <div className="w-10 h-px" style={{ background: 'linear-gradient(90deg, transparent, #D4A84B)' }} />
+          <span className="text-xs tracking-[0.3em] uppercase" style={{ color: '#D4A84B' }}>甄选臻品</span>
+          <div className="w-10 h-px" style={{ background: 'linear-gradient(90deg, #D4A84B, transparent)' }} />
+        </div>
+        <h2 className="font-heading text-3xl md:text-4xl font-light">
+          探索 <em className="not-italic" style={{
+            background: 'linear-gradient(135deg, #B8A8FF, #F0CC8A)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}>臻选</em>世界
+        </h2>
+      </motion.div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-2 justify-center mb-8">
+        {filters.map((f) => (
+          <button
+            key={f}
+            onClick={() => { setActiveFilter(f); setCurrentPage(1); }}
+            className={`px-4 py-2 rounded-full text-xs tracking-[0.15em] uppercase transition-all duration-300 ${
+              activeFilter === f
+                ? 'text-foreground'
+                : 'text-foreground/50 hover:text-foreground border-border/50'
+            }`}
+            style={
+              activeFilter === f
+                ? { background: 'linear-gradient(135deg, rgba(155,127,255,0.2), rgba(212,168,75,0.1))', border: '1px solid rgba(155,127,255,0.4)' }
+                : { border: '1px solid rgba(240,236,230,0.08)' }
+            }
           >
-            <span className="text-xs tracking-[0.3em] uppercase text-primary/80">
-              Featured
-            </span>
-          </motion.div>
-          
-          <motion.h2
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {/* Sort */}
+      <div className="flex justify-end mb-8 px-4">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-foreground/50 tracking-[0.1em] uppercase">排序</span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="px-3 py-2 bg-[rgba(26,26,46,0.6)] border border-[rgba(240,236,230,0.12)] rounded-lg text-foreground text-xs font-sans outline-none focus:border-purple/50 transition-colors"
+          >
+            {sortOptions.map((o) => (
+              <option key={o} value={o} className="bg-[#0d0521]">{o}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Product Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {paged.map((product, i) => (
+          <motion.div
+            key={product.id}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="font-heading italic text-4xl md:text-5xl lg:text-6xl text-foreground mb-6"
+            transition={{ duration: 0.6, delay: i * 0.1 }}
+            className="rounded-xl overflow-hidden"
+            style={{
+              background: 'rgba(26,26,46,0.6)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(240,236,230,0.08)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 16px 48px rgba(0,0,0,0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
           >
-            Featured Products
-          </motion.h2>
-        </div>
+            {/* Image */}
+            <div className="relative aspect-square overflow-hidden group">
+              <img
+                src={product.img}
+                alt={product.name}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                loading="lazy"
+              />
+              {product.tag && (
+                <div className="absolute top-3 left-3 px-3 py-1 rounded-full text-[0.62rem] tracking-[0.15em] uppercase"
+                  style={{
+                    background: 'rgba(13,5,33,0.85)',
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid rgba(240,236,230,0.08)',
+                  }}
+                >
+                  {product.tag}
+                </div>
+              )}
+              {/* Quick View */}
+              <div
+                className="absolute bottom-0 left-0 right-0 p-3 flex items-center justify-center gap-2 text-xs tracking-[0.15em] uppercase text-foreground/60 transition-all duration-300"
+                style={{
+                  background: 'rgba(13,5,33,0.9)',
+                  backdropFilter: 'blur(12px)',
+                  transform: 'translateY(100%)',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(100%)'; }}
+                onClick={() => addToCart(product)}
+              >
+                <Eye size={14} /> 快速鉴赏
+              </div>
+            </div>
 
-        {/* 产品网格 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {productGrid}
+            {/* Info */}
+            <div className="p-5">
+              <p className="text-[0.65rem] tracking-[0.2em] uppercase text-gold mb-1">{product.category}</p>
+              <h3 className="font-heading text-lg font-normal mb-2 leading-snug">{product.name}</h3>
+              <p className="text-xs text-foreground/50 mb-4 leading-relaxed" style={{ minHeight: '2.8em' }}>{product.desc}</p>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => toggleWishlist(product.id)}
+                    aria-label={wishlist.includes(product.id) ? `从心愿单移除 ${product.name}` : `加入心愿单 ${product.name}`}
+                    aria-pressed={wishlist.includes(product.id)}
+                    className="w-9 h-9 rounded-full border border-[rgba(240,236,230,0.08)] flex items-center justify-center text-foreground/50 hover:border-red-400/50 hover:text-red-400 transition-colors text-sm"
+                  >
+                    {wishlist.includes(product.id) ? <Heart size={14} fill="currentColor" className="text-red-400" /> : <Heart size={14} />}
+                  </button>
+                </div>
+                <div
+                  className="font-heading text-lg"
+                  style={{
+                    background: 'linear-gradient(135deg, #B8A8FF, #F0CC8A)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  ¥{product.price.toLocaleString()}
+                </div>
+                <button
+                  onClick={() => addToCart(product)}
+                  aria-label={isInCart(product.id) ? `${product.name} 已在购物袋中` : `将 ${product.name} 加入购物袋`}
+                  aria-pressed={isInCart(product.id)}
+                  className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300"
+                  style={{
+                    border: isInCart(product.id) ? '1px solid rgba(155,127,255,0.5)' : '1px solid rgba(155,127,255,0.3)',
+                    color: isInCart(product.id) ? '#9B7FFF' : 'rgba(155,127,255,0.7)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(155,127,255,0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(155,127,255,0.5)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.borderColor = isInCart(product.id) ? 'rgba(155,127,255,0.5)' : 'rgba(155,127,255,0.3)';
+                  }}
+                >
+                  <ShoppingCart size={14} />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-3 mt-12">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => p - 1)}
+            className="px-4 py-2 rounded-lg text-xs transition-all duration-300 text-foreground/60 hover:text-foreground disabled:opacity-30"
+            style={{ background: 'rgba(26,26,46,0.6)', border: '1px solid rgba(240,236,230,0.08)' }}
+          >
+            上一页
+          </button>
+          <div className="flex gap-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => setCurrentPage(p)}
+                className={`w-10 h-10 rounded-lg text-xs transition-all duration-300 ${
+                  currentPage === p ? 'text-foreground' : 'text-foreground/50 hover:text-foreground'
+                }`}
+                style={
+                  currentPage === p
+                    ? { background: 'linear-gradient(135deg, rgba(155,127,255,0.2), rgba(212,168,75,0.1))', border: '1px solid rgba(155,127,255,0.4)' }
+                    : { background: 'rgba(26,26,46,0.6)', border: '1px solid rgba(240,236,230,0.08)' }
+                }
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => p + 1)}
+            className="px-4 py-2 rounded-lg text-xs transition-all duration-300 text-foreground/60 hover:text-foreground disabled:opacity-30"
+            style={{ background: 'rgba(26,26,46,0.6)', border: '1px solid rgba(240,236,230,0.08)' }}
+          >
+            下一页
+          </button>
         </div>
-      </motion.div>
+      )}
     </section>
   );
-});
-
-FeaturedProducts.displayName = 'FeaturedProducts';
-
-export { FeaturedProducts };
+}

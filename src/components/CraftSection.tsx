@@ -1,101 +1,65 @@
-import { motion } from 'framer-motion';
-import { useLazyVideo } from '../hooks/useLazyVideo';
-import { BlurText } from './BlurText';
+import { motion, useInView } from 'framer-motion';
+import { useRef } from 'react';
 
-const stats = [
-  { value: '18k', label: 'Solid gold craftsmanship' },
-  { value: 'VS+', label: 'Selected diamond clarity' },
-  { value: '100%', label: 'Certified authenticity' },
-  { value: 'Worldwide', label: 'White-glove delivery' },
+const craftStats = [
+  { num: '15+', label: '全球甄选' },
+  { num: '50+', label: '匠心工艺' },
+  { num: '99%', label: '鉴赏满意' },
 ];
 
 export function CraftSection() {
-  const videoRef = useLazyVideo();
-  
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+
   return (
-    <section className="relative min-h-[80vh] flex items-center overflow-hidden py-32">
-      {/* Video Background */}
-      <div className="absolute inset-0 z-0">
-        <video
-          ref={videoRef}
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="w-full h-full object-cover opacity-50"
-        >
-          <source 
-            src="https://cdnstatic.tencentcs.com/edgeone/pages/product-activities/jewelry/Craftsmanship%20%20Stats.mp4" 
-            type="video/mp4" 
-          />
-        </video>
-        
-        {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-[#0d0521]/80" />
-      </div>
-
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-10 lg:px-16">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="luxury-glass p-12 max-w-4xl mx-auto"
-        >
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="inline-block px-3 py-1 rounded-full mb-8 border border-primary/30"
-          >
-            <span className="text-xs tracking-[0.3em] uppercase text-primary/80">
-              Craft & Trust
-            </span>
-          </motion.div>
-
-          {/* Heading */}
-          <BlurText
-            text="Precision you can feel before you can name it."
-            className="font-heading italic text-4xl md:text-5xl text-foreground mb-8"
-            delay={0.2}
-          />
-
-          {/* Subtext */}
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-base font-light text-foreground/60 leading-relaxed mb-16"
-          >
-            From nacre to setting, every detail is shaped to preserve rarity, comfort, and enduring value.
-          </motion.p>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: 0.6 + index * 0.1 }}
-                className="text-center"
-              >
-                <div className="font-heading italic text-4xl md:text-5xl text-primary mb-3">
-                  {stat.value}
-                </div>
-                <div className="text-xs uppercase tracking-[0.15em] text-foreground/60">
-                  {stat.label}
-                </div>
-              </motion.div>
-            ))}
+    <section id="craft" className="py-28 px-6 md:px-16 lg:px-24" style={{ background: 'linear-gradient(135deg, rgba(26,26,46,0.4), rgba(13,5,33,0.8))' }}>
+      <motion.div
+        ref={ref}
+        initial={{ opacity: 0, y: 20 }}
+        animate={isInView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.8 }}
+        className="max-w-7xl mx-auto"
+      >
+        {/* Static Background */}
+        <div className="relative rounded-2xl overflow-hidden aspect-video mb-16 border border-border/50" style={{ background: 'linear-gradient(135deg, rgba(155,127,255,0.08), rgba(212,168,75,0.05))' }}>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-6xl mb-4" style={{ color: 'rgba(155,127,255,0.15)' }}>◆</div>
+              <div className="text-sm tracking-[0.2em] uppercase" style={{ color: 'rgba(240,236,230,0.3)' }}>匠心工艺</div>
+            </div>
           </div>
-        </motion.div>
-      </div>
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent, rgba(13,5,33,0.9) 100%)' }} />
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {craftStats.map((s, i) => (
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, y: 30 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: i * 0.15 }}
+              className="text-center p-8 rounded-xl border border-border/50"
+              style={{ background: 'rgba(26,26,46,0.6)', backdropFilter: 'blur(12px)' }}
+            >
+              <div
+                className="font-heading text-4xl mb-2"
+                style={{
+                  background: 'linear-gradient(135deg, #B8A8FF, #F0CC8A)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
+                {s.num}
+              </div>
+              <div className="text-sm tracking-[0.2em] uppercase" style={{ color: 'rgba(240,236,230,0.5)' }}>
+                {s.label}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
     </section>
   );
 }

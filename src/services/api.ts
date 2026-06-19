@@ -4,6 +4,25 @@
  */
 
 const API_BASE = '/api';
+const TIMEOUT_MS = 10000; // 10秒超时
+
+// 通用超时处理函数
+async function fetchWithTimeout(url: string, options: RequestInit = {}): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+}
 
 // ==================== 类型定义 ====================
 
@@ -77,7 +96,7 @@ export async function fetchProducts(params?: PaginationParams): Promise<Paginati
   if (params?.category) url.searchParams.set('category', params.category);
   if (params?.sort) url.searchParams.set('sort', params.sort);
   
-  const response = await fetch(url.toString(), {
+  const response = await fetchWithTimeout(url.toString(), {
     headers: {
       'Cache-Control': 'no-cache'
     }
@@ -94,7 +113,7 @@ export async function fetchProducts(params?: PaginationParams): Promise<Paginati
  * 获取单个产品详情
  */
 export async function fetchProduct(slug: string): Promise<Product> {
-  const response = await fetch(`${API_BASE}/products/${slug}`);
+  const response = await fetchWithTimeout(`${API_BASE}/products/${slug}`);
   
   if (!response.ok) {
     throw new Error(`Failed to fetch product: ${response.statusText}`);
@@ -113,7 +132,7 @@ export async function fetchRecommendations(request: RecommendationRequest): Prom
   if (request.productId) url.searchParams.set('productId', request.productId.toString());
   if (request.limit) url.searchParams.set('limit', request.limit.toString());
   
-  const response = await fetch(url.toString());
+  const response = await fetchWithTimeout(url.toString());
   
   if (!response.ok) {
     throw new Error(`Failed to fetch recommendations: ${response.statusText}`);
@@ -128,7 +147,7 @@ export async function fetchRecommendations(request: RecommendationRequest): Prom
  * 获取产品评论
  */
 export async function fetchReviews(productId: string): Promise<Review[]> {
-  const response = await fetch(`${API_BASE}/reviews?productId=${productId}`);
+  const response = await fetchWithTimeout(`${API_BASE}/reviews?productId=${productId}`);
   
   if (!response.ok) {
     throw new Error(`Failed to fetch reviews: ${response.statusText}`);
@@ -144,7 +163,7 @@ export async function submitReview(
   productId: string,
   review: { author: string; rating: number; text: string }
 ): Promise<Review> {
-  const response = await fetch(`${API_BASE}/reviews`, {
+  const response = await fetchWithTimeout(`${API_BASE}/reviews`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -170,7 +189,7 @@ export async function submitReview(
  * 邮件订阅
  */
 export async function subscribe(email: string): Promise<{ success: boolean; message: string }> {
-  const response = await fetch(`${API_BASE}/subscribe`, {
+  const response = await fetchWithTimeout(`${API_BASE}/subscribe`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -197,7 +216,7 @@ export async function trackUserBehavior(data: {
   action: 'view' | 'like' | 'purchase';
   timestamp?: number;
 }): Promise<void> {
-  const response = await fetch(`${API_BASE}/track`, {
+  const response = await fetchWithTimeout(`${API_BASE}/track`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -218,7 +237,7 @@ export async function trackUserBehavior(data: {
  * 获取用户行为数据
  */
 export async function fetchUserBehavior(userId: string): Promise<UserBehavior> {
-  const response = await fetch(`${API_BASE}/track?userId=${userId}`);
+  const response = await fetchWithTimeout(`${API_BASE}/track?userId=${userId}`);
   
   if (!response.ok) {
     throw new Error(`Failed to fetch user behavior: ${response.statusText}`);
@@ -232,7 +251,7 @@ export async function fetchUserBehavior(userId: string): Promise<UserBehavior> {
 /**
  * 处理 API 错误
  */
-export function handleApiError(error: any): string {
+export function handleApiError(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
   }
@@ -246,7 +265,7 @@ export function getUserId(): string {
   let userId = localStorage.getItem('eclat_user_id');
   
   if (!userId) {
-    userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    userId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     localStorage.setItem('eclat_user_id', userId);
   }
   
