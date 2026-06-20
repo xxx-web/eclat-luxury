@@ -13,6 +13,7 @@ interface AppState {
   cart: CartItem[];
   wishlist: string[];
   isCartOpen: boolean;
+  isWishlistOpen: boolean;
   isCheckoutOpen: boolean;
   isPreviewOpen: boolean;
   previewProduct: Product | null;
@@ -23,6 +24,7 @@ interface AppContextType extends AppState {
   removeFromCart: (id: string) => void;
   updateQty: (id: string, qty: number) => void;
   toggleCart: () => void;
+  toggleWishlistPanel: () => void;
   toggleWishlist: (id: string) => void;
   openCheckout: () => void;
   closeCheckout: () => void;
@@ -54,6 +56,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   });
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
@@ -99,9 +102,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider
       value={{
-        cart, wishlist, isCartOpen, isCheckoutOpen, isPreviewOpen, previewProduct,
+        cart, wishlist, isCartOpen, isWishlistOpen, isCheckoutOpen, isPreviewOpen, previewProduct,
         addToCart, removeFromCart, updateQty, toggleWishlist,
-        toggleCart: () => setIsCartOpen((v) => !v),
+        toggleCart: () => { setIsCartOpen((v) => !v); setIsWishlistOpen(false); },
+        toggleWishlistPanel: () => { setIsWishlistOpen((v) => !v); setIsCartOpen(false); },
         openCheckout: () => { setIsCartOpen(false); setIsCheckoutOpen(true); },
         closeCheckout: () => setIsCheckoutOpen(false),
         openPreview: (p: Product) => { setPreviewProduct(p); setIsPreviewOpen(true); },

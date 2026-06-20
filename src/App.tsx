@@ -11,6 +11,7 @@ import { BrandStorySection } from './components/BrandStorySection';
 import { TestimonialsSection } from './components/TestimonialsSection';
 import { Footer } from './components/Footer';
 import { CartPanel } from './components/CartPanel';
+import { WishlistPanel } from './components/WishlistPanel';
 import { CheckoutPanel } from './components/CheckoutPanel';
 import { ProductPreviewModal } from './components/ProductPreviewModal';
 
@@ -39,6 +40,7 @@ function AppInner() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[2000] transition-opacity duration-300" onClick={toggleCart} />
       )}
       <CartPanel />
+      <WishlistPanel />
 
       {isCheckoutOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[2500] transition-opacity duration-300" onClick={closeCheckout} />

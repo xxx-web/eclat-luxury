@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { Star, Eye, Heart, ShoppingCart, Plus, Minus } from 'lucide-react';
+import { allProducts } from '../data/products';
 
-const allProducts = [
+/*
+const _legacyAllProducts = [
   {
     id: 'yueguang',
     name: '月光之泪项链',
@@ -95,6 +97,7 @@ const allProducts = [
     tag: '甄选',
   },
 ];
+*/
 
 const filters = ['全部臻品', '珠宝臻品', '香水雅韵', '奢华手袋'];
 const sortOptions = ['默认排序', '价格从低到高', '价格从高到低', '评分最高'];

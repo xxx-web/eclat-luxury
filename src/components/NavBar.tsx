@@ -4,13 +4,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../hooks/useAuth';
 import { AuthModal } from './AuthModal';
+import { SearchPanel } from './SearchPanel';
 
 export function NavBar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  const { wishlist, getCartCount, toggleCart } = useApp();
+  const { wishlist, getCartCount, toggleCart, toggleWishlistPanel, openPreview } = useApp();
   const { user, logout } = useAuth();
 
   useEffect(() => {
@@ -69,6 +71,7 @@ export function NavBar() {
         {/* Actions */}
         <div className="flex items-center gap-4">
           <button
+            onClick={() => setIsSearchOpen(true)}
             aria-label="搜索产品"
             className="luxury-glass w-10 h-10 rounded-full flex items-center justify-center text-foreground/60 hover:text-primary transition-colors"
           >
@@ -76,6 +79,7 @@ export function NavBar() {
           </button>
 
           <button
+            onClick={toggleWishlistPanel}
             aria-label={`心愿单（${wishlist.length} 件商品）`}
             className="luxury-glass w-10 h-10 rounded-full flex items-center justify-center text-foreground/60 hover:text-red-400 transition-colors relative"
           >
@@ -233,6 +237,13 @@ export function NavBar() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         initialMode={authMode}
+      />
+
+      {/* Search Panel */}
+      <SearchPanel
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onSelect={(p) => openPreview(p)}
       />
     </motion.nav>
   );
