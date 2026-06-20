@@ -122,27 +122,36 @@ export function FeaturedProducts() {
 
   const goToPage = (page: number) => {
     if (page === currentPage) return;
+    const direction: 'forward' | 'backward' = page > currentPage ? 'forward' : 'backward';
     setCurrentPage(page);
-    // After the new products render, anchor the product grid so it ends
-    // just above the pagination bar (which stays glued near the viewport
-    // bottom). This way the user always sees the new page's products with
-    // the pagination bar in view, no matter which page they click.
+
     requestAnimationFrame(() => {
       setTimeout(() => {
+        const section = document.getElementById('products');
         const pagination = document.getElementById('products-pagination');
-        if (!pagination) return;
-        const rect = pagination.getBoundingClientRect();
-        // Distance from the bottom of the pagination bar to the top of the viewport
-        const paginationBottomOffset = window.innerHeight - rect.bottom;
-        // If pagination bar is already near the bottom of the viewport, don't scroll
-        if (paginationBottomOffset >= 0 && paginationBottomOffset < 40) return;
-        // Otherwise, scroll so the pagination bar lands 32px above the viewport bottom
-        const targetScrollY =
-          window.scrollY + rect.top - (window.innerHeight - rect.height - 32);
-        window.scrollTo({
-          top: Math.max(targetScrollY, 0),
-          behavior: 'smooth',
-        });
+        if (!section || !pagination) return;
+
+        if (direction === 'backward') {
+          // Going back: scroll to the top of the products section
+          // so the user sees the filter bar + the new first product
+          const top = section.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({
+            top: Math.max(top - 20, 0),
+            behavior: 'smooth',
+          });
+        } else {
+          // Going forward: keep the pagination near the viewport bottom
+          // so the new page's products appear right above it
+          const rect = pagination.getBoundingClientRect();
+          const paginationBottomOffset = window.innerHeight - rect.bottom;
+          if (paginationBottomOffset >= 0 && paginationBottomOffset < 40) return;
+          const targetScrollY =
+            window.scrollY + rect.top - (window.innerHeight - rect.height - 32);
+          window.scrollTo({
+            top: Math.max(targetScrollY, 0),
+            behavior: 'smooth',
+          });
+        }
       }, 60);
     });
   };
