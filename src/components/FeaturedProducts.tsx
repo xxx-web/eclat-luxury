@@ -122,11 +122,18 @@ export function FeaturedProducts() {
 
   const goToPage = (page: number) => {
     setCurrentPage(page);
-    // Scroll to products section top for better UX
-    const el = document.getElementById('products');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    // Smoothly scroll to the pagination bar itself so the user
+    // sees the new product list appear just above where they are.
+    requestAnimationFrame(() => {
+      const el = document.getElementById('products-pagination');
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        // Only scroll if the pagination is not already in view
+        if (rect.top < 0 || rect.bottom > window.innerHeight) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    });
   };
 
   const isInCart = (id: string) => cart.some((i) => i.id === id);
@@ -309,7 +316,7 @@ export function FeaturedProducts() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-3 mt-12">
+        <div id="products-pagination" className="flex items-center justify-center gap-3 mt-12">
           <button
             disabled={currentPage === 1}
             onClick={() => goToPage(currentPage - 1)}
