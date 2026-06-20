@@ -117,9 +117,29 @@ export function NavBar() {
           {/* Auth Buttons - Desktop only */}
           {user ? (
             <div className="hidden md:flex items-center gap-3">
-              <span className="text-sm text-foreground/60" style={{ letterSpacing: '0.05em' }}>
+              <button
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('eclat:open-user-center'));
+                }}
+                aria-label="打开用户中心"
+                className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.78rem] tracking-[0.1em] uppercase text-foreground/60 hover:text-foreground transition-colors"
+                style={{
+                  background: 'rgba(155, 127, 255, 0.05)',
+                  border: '1px solid rgba(155, 127, 255, 0.15)',
+                }}
+              >
+                <span
+                  className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-serif"
+                  style={{
+                    background:
+                      'linear-gradient(135deg, rgba(155,127,255,0.3), rgba(212,168,75,0.2))',
+                    color: '#B8A8FF',
+                  }}
+                >
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
                 {user.name}
-              </span>
+              </button>
               <button
                 onClick={logout}
                 className="px-4 py-1.5 rounded-full text-[0.78rem] tracking-[0.1em] uppercase text-foreground/60 hover:text-foreground transition-colors"
@@ -203,7 +223,28 @@ export function NavBar() {
               ))}
 
               {/* Mobile Auth Buttons */}
-              {!user && (
+              {user ? (
+                <div className="flex flex-col gap-3 pt-4 border-t border-border">
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      window.dispatchEvent(new CustomEvent('eclat:open-user-center'));
+                    }}
+                    className="text-lg tracking-[0.1em] uppercase text-foreground/60 hover:text-foreground transition-colors pb-4 border-b border-border text-left"
+                  >
+                    用户中心
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      logout();
+                    }}
+                    className="text-lg tracking-[0.1em] uppercase text-foreground/60 hover:text-foreground transition-colors pb-4 border-b border-border text-left"
+                  >
+                    退出登录
+                  </button>
+                </div>
+              ) : (
                 <div className="flex flex-col gap-3 pt-4 border-t border-border">
                   <button
                     onClick={() => {

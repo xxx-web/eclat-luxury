@@ -7,6 +7,7 @@ interface CartItem {
   price: number;
   img: string;
   qty: number;
+  category: string;
 }
 
 interface AppState {
@@ -23,6 +24,7 @@ interface AppContextType extends AppState {
   addToCart: (product: Product) => void;
   removeFromCart: (id: string) => void;
   updateQty: (id: string, qty: number) => void;
+  clearCart: () => void;
   toggleCart: () => void;
   toggleWishlistPanel: () => void;
   toggleWishlist: (id: string) => void;
@@ -75,8 +77,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (existing) {
         return prev.map((i) => (i.id === String(product.id) ? { ...i, qty: i.qty + 1 } : i));
       }
-      return [...prev, { id: String(product.id), name: product.name, price: product.price, img: product.img, qty: 1 }];
+      return [
+        ...prev,
+        {
+          id: String(product.id),
+          name: product.name,
+          price: product.price,
+          img: product.img,
+          category: product.category,
+          qty: 1,
+        },
+      ];
     });
+  };
+
+  const clearCart = () => {
+    setCart([]);
   };
 
   const removeFromCart = (id: string) => {
@@ -103,10 +119,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider
       value={{
         cart, wishlist, isCartOpen, isWishlistOpen, isCheckoutOpen, isPreviewOpen, previewProduct,
-        addToCart, removeFromCart, updateQty, toggleWishlist,
+        addToCart, removeFromCart, updateQty, clearCart, toggleWishlist,
         toggleCart: () => { setIsCartOpen((v) => !v); setIsWishlistOpen(false); },
         toggleWishlistPanel: () => { setIsWishlistOpen((v) => !v); setIsCartOpen(false); },
-        openCheckout: () => { setIsCartOpen(false); setIsCheckoutOpen(true); },
+        openCheckout: () => { setIsCartOpen(false); setIsWishlistOpen(false); setIsCheckoutOpen(true); },
         closeCheckout: () => setIsCheckoutOpen(false),
         openPreview: (p: Product) => { setPreviewProduct(p); setIsPreviewOpen(true); },
         closePreview: () => setIsPreviewOpen(false),
