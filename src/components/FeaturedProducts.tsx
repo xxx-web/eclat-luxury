@@ -121,18 +121,29 @@ export function FeaturedProducts() {
   const paged = sorted.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const goToPage = (page: number) => {
+    if (page === currentPage) return;
     setCurrentPage(page);
-    // Smoothly scroll to the pagination bar itself so the user
-    // sees the new product list appear just above where they are.
+    // After the new products render, anchor the product grid so it ends
+    // just above the pagination bar (which stays glued near the viewport
+    // bottom). This way the user always sees the new page's products with
+    // the pagination bar in view, no matter which page they click.
     requestAnimationFrame(() => {
-      const el = document.getElementById('products-pagination');
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        // Only scroll if the pagination is not already in view
-        if (rect.top < 0 || rect.bottom > window.innerHeight) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }
+      setTimeout(() => {
+        const pagination = document.getElementById('products-pagination');
+        if (!pagination) return;
+        const rect = pagination.getBoundingClientRect();
+        // Distance from the bottom of the pagination bar to the top of the viewport
+        const paginationBottomOffset = window.innerHeight - rect.bottom;
+        // If pagination bar is already near the bottom of the viewport, don't scroll
+        if (paginationBottomOffset >= 0 && paginationBottomOffset < 40) return;
+        // Otherwise, scroll so the pagination bar lands 32px above the viewport bottom
+        const targetScrollY =
+          window.scrollY + rect.top - (window.innerHeight - rect.height - 32);
+        window.scrollTo({
+          top: Math.max(targetScrollY, 0),
+          behavior: 'smooth',
+        });
+      }, 60);
     });
   };
 
