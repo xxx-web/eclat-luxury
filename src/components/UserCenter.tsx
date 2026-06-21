@@ -15,6 +15,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useOrders, useAddresses, type Address } from '../hooks/useOrders';
 import { useReviews } from '../hooks/useOrders';
 import { PROVINCES, getCitiesByProvince } from '../data/regions';
+import { validatePhone, validateName } from '../utils/validators';
 
 interface UserCenterProps {
   isOpen: boolean;
@@ -52,6 +53,7 @@ export function UserCenter({ isOpen, onClose, onOpenAuth }: UserCenterProps) {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewContent, setReviewContent] = useState('');
   const [showAddAddress, setShowAddAddress] = useState(false);
+  const [addressErrors, setAddressErrors] = useState<{ name?: string; phone?: string; detail?: string }>({});
   const [newAddress, setNewAddress] = useState<Omit<Address, 'id'>>({
     name: '',
     phone: '',
@@ -154,7 +156,17 @@ export function UserCenter({ isOpen, onClose, onOpenAuth }: UserCenterProps) {
   };
 
   const handleAddAddress = () => {
-    if (!newAddress.name || !newAddress.phone || !newAddress.detail) return;
+    // Use shared validators (DRY with CheckoutPanel)
+    const errors: typeof addressErrors = {};
+    const nameResult = validateName(newAddress.name, '姓名');
+    if (!nameResult.ok) errors.name = nameResult.error;
+    const phoneResult = validatePhone(newAddress.phone);
+    if (!phoneResult.ok) errors.phone = phoneResult.error;
+    if (!newAddress.detail.trim()) errors.detail = '请输入详细地址';
+    if (Object.keys(errors).length > 0) {
+      setAddressErrors(errors);
+      return;
+    }
     addAddress(newAddress);
     setNewAddress({
       name: '',
@@ -164,6 +176,7 @@ export function UserCenter({ isOpen, onClose, onOpenAuth }: UserCenterProps) {
       detail: '',
       isDefault: false,
     });
+    setAddressErrors({});
     setShowAddAddress(false);
   };
 
@@ -452,22 +465,41 @@ export function UserCenter({ isOpen, onClose, onOpenAuth }: UserCenterProps) {
                     }}
                   >
                     <div className="grid grid-cols-2 gap-3">
-                      <input
-                        type="text"
-                        placeholder="姓名"
-                        value={newAddress.name}
-                        onChange={(e) => setNewAddress((p) => ({ ...p, name: e.target.value }))}
-                        className="px-3 py-2 rounded bg-[rgba(255,255,255,0.04)] border outline-none text-sm"
-                        style={{ borderColor: 'rgba(240,236,230,0.12)' }}
-                      />
-                      <input
-                        type="tel"
-                        placeholder="手机号"
-                        value={newAddress.phone}
-                        onChange={(e) => setNewAddress((p) => ({ ...p, phone: e.target.value }))}
-                        className="px-3 py-2 rounded bg-[rgba(255,255,255,0.04)] border outline-none text-sm"
-                        style={{ borderColor: 'rgba(240,236,230,0.12)' }}
-                      />
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="姓名"
+                          value={newAddress.name}
+                          onChange={(e) => {
+                            setNewAddress((p) => ({ ...p, name: e.target.value }));
+                            if (addressErrors.name) setAddressErrors((p) => ({ ...p, name: undefined }));
+                          }}
+                          aria-invalid={!!addressErrors.name}
+                          className="w-full px-3 py-2 rounded bg-[rgba(255,255,255,0.04)] border outline-none text-sm"
+                          style={{ borderColor: addressErrors.name ? 'rgba(239, 68, 68, 0.5)' : 'rgba(240,236,230,0.12)' }}
+                        />
+                        {addressErrors.name && (
+                          <p className="text-[10px] text-red-400 mt-1">{addressErrors.name}</p>
+                        )}
+                      </div>
+                      <div>
+                        <input
+                          type="tel"
+                          placeholder="11 位手机号"
+                          value={newAddress.phone}
+                          onChange={(e) => {
+                            setNewAddress((p) => ({ ...p, phone: e.target.value }));
+                            if (addressErrors.phone) setAddressErrors((p) => ({ ...p, phone: undefined }));
+                          }}
+                          aria-invalid={!!addressErrors.phone}
+                          maxLength={11}
+                          className="w-full px-3 py-2 rounded bg-[rgba(255,255,255,0.04)] border outline-none text-sm"
+                          style={{ borderColor: addressErrors.phone ? 'rgba(239, 68, 68, 0.5)' : 'rgba(240,236,230,0.12)' }}
+                        />
+                        {addressErrors.phone && (
+                          <p className="text-[10px] text-red-400 mt-1">{addressErrors.phone}</p>
+                        )}
+                      </div>
                       <select
                         value={newAddress.province}
                         onChange={(e) => setNewAddress((p) => ({ ...p, province: e.target.value, city: '' }))}
@@ -514,14 +546,23 @@ export function UserCenter({ isOpen, onClose, onOpenAuth }: UserCenterProps) {
                         ))}
                       </select>
                     </div>
-                    <input
-                      type="text"
-                      placeholder="详细地址"
-                      value={newAddress.detail}
-                      onChange={(e) => setNewAddress((p) => ({ ...p, detail: e.target.value }))}
-                      className="w-full px-3 py-2 rounded bg-[rgba(255,255,255,0.04)] border outline-none text-sm"
-                      style={{ borderColor: 'rgba(240,236,230,0.12)' }}
-                    />
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="详细地址（街道、门牌号、楼层）"
+                        value={newAddress.detail}
+                        onChange={(e) => {
+                          setNewAddress((p) => ({ ...p, detail: e.target.value }));
+                          if (addressErrors.detail) setAddressErrors((p) => ({ ...p, detail: undefined }));
+                        }}
+                        aria-invalid={!!addressErrors.detail}
+                        className="w-full px-3 py-2 rounded bg-[rgba(255,255,255,0.04)] border outline-none text-sm"
+                        style={{ borderColor: addressErrors.detail ? 'rgba(239, 68, 68, 0.5)' : 'rgba(240,236,230,0.12)' }}
+                      />
+                      {addressErrors.detail && (
+                        <p className="text-[10px] text-red-400 mt-1">{addressErrors.detail}</p>
+                      )}
+                    </div>
                     <label className="flex items-center gap-2 text-xs text-foreground/60">
                       <input
                         type="checkbox"
