@@ -99,11 +99,10 @@ export function NavBar() {
               wishlist.length > 0 ? 'text-red-400' : 'text-foreground/60 hover:text-red-400'
             }`}
           >
-            <Heart size={18} fill={wishlist.length > 0 ? 'currentColor' : 'none'} />
+            <Heart size={18} fill={wishlist.length > 0 ? 'currentColor' : 'none'} className="relative z-10" />
             {wishlist.length > 0 && (
               <span
-                className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 rounded-full text-[10px] font-semibold flex items-center justify-center text-white shadow-lg"
-                style={{ boxShadow: '0 0 8px rgba(239, 68, 68, 0.5)' }}
+                className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 rounded-full text-[10px] font-semibold flex items-center justify-center text-white z-20 border border-[#0d0521]"
               >
                 {wishlist.length > 99 ? '99+' : wishlist.length}
               </span>
@@ -117,11 +116,10 @@ export function NavBar() {
               getCartCount() > 0 ? 'text-primary' : 'text-foreground/60 hover:text-primary'
             }`}
           >
-            <ShoppingCart size={18} />
+            <ShoppingCart size={18} className="relative z-10" />
             {getCartCount() > 0 && (
               <span
-                className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-primary rounded-full text-[10px] font-semibold flex items-center justify-center text-primary-foreground shadow-lg"
-                style={{ boxShadow: '0 0 8px rgba(155, 127, 255, 0.5)' }}
+                className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-primary rounded-full text-[10px] font-semibold flex items-center justify-center text-primary-foreground z-20 border border-[#0d0521]"
               >
                 {getCartCount() > 99 ? '99+' : getCartCount()}
               </span>
