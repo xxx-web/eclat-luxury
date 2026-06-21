@@ -14,6 +14,7 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import { useOrders, useAddresses, type Address } from '../hooks/useOrders';
 import { useReviews } from '../hooks/useOrders';
+import { PROVINCES, getCitiesByProvince } from '../data/regions';
 
 interface UserCenterProps {
   isOpen: boolean;
@@ -467,22 +468,51 @@ export function UserCenter({ isOpen, onClose, onOpenAuth }: UserCenterProps) {
                         className="px-3 py-2 rounded bg-[rgba(255,255,255,0.04)] border outline-none text-sm"
                         style={{ borderColor: 'rgba(240,236,230,0.12)' }}
                       />
-                      <input
-                        type="text"
-                        placeholder="省"
+                      <select
                         value={newAddress.province}
-                        onChange={(e) => setNewAddress((p) => ({ ...p, province: e.target.value }))}
-                        className="px-3 py-2 rounded bg-[rgba(255,255,255,0.04)] border outline-none text-sm"
-                        style={{ borderColor: 'rgba(240,236,230,0.12)' }}
-                      />
-                      <input
-                        type="text"
-                        placeholder="市"
+                        onChange={(e) => setNewAddress((p) => ({ ...p, province: e.target.value, city: '' }))}
+                        className="px-3 py-2 rounded bg-[rgba(255,255,255,0.04)] border outline-none text-sm appearance-none cursor-pointer"
+                        style={{
+                          borderColor: 'rgba(240,236,230,0.12)',
+                          backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23B8A8FF%27 stroke-width=%272%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e")',
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'right 0.5rem center',
+                          paddingRight: '1.75rem',
+                        }}
+                        aria-label="选择省/直辖市"
+                      >
+                        <option value="" style={{ background: '#0d0521' }}>请选择省/直辖市</option>
+                        {PROVINCES.map((p) => (
+                          <option key={p.name} value={p.name} style={{ background: '#0d0521' }}>
+                            {p.name}
+                          </option>
+                        ))}
+                      </select>
+                      <select
                         value={newAddress.city}
                         onChange={(e) => setNewAddress((p) => ({ ...p, city: e.target.value }))}
-                        className="px-3 py-2 rounded bg-[rgba(255,255,255,0.04)] border outline-none text-sm"
-                        style={{ borderColor: 'rgba(240,236,230,0.12)' }}
-                      />
+                        disabled={!newAddress.province}
+                        className="px-3 py-2 rounded bg-[rgba(255,255,255,0.04)] border outline-none text-sm appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{
+                          borderColor: 'rgba(240,236,230,0.12)',
+                          backgroundImage: newAddress.province
+                            ? 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23B8A8FF%27 stroke-width=%272%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e")'
+                            : 'none',
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'right 0.5rem center',
+                          paddingRight: '1.75rem',
+                        }}
+                        aria-label="选择市/区"
+                      >
+                        <option value="" style={{ background: '#0d0521' }}>
+                          {newAddress.province ? '请选择市/区' : '请先选择省'}
+                        </option>
+                        {getCitiesByProvince(newAddress.province).map((c) => (
+                          <option key={c} value={c} style={{ background: '#0d0521' }}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <input
                       type="text"
