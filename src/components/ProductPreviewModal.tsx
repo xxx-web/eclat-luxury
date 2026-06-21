@@ -32,7 +32,6 @@ export function ProductPreviewModal() {
     }
     toggleWishlist(previewProduct.id);
   };
-  const isWish = wishlist.includes(previewProduct.id);
   const reviews = getReviewsFor(previewProduct.id);
   const averageRating =
     reviews.length > 0
