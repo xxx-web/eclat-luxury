@@ -95,14 +95,15 @@ export function NavBar() {
           <button
             onClick={toggleWishlistPanel}
             aria-label={`心愿单（${wishlist.length} 件商品）`}
-            className={`luxury-glass w-10 h-10 rounded-full flex items-center justify-center transition-colors relative ${
+            className={`luxury-glass w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
               wishlist.length > 0 ? 'text-red-400' : 'text-foreground/60 hover:text-red-400'
             }`}
           >
-            <Heart size={18} fill={wishlist.length > 0 ? 'currentColor' : 'none'} className="relative z-10" />
+            <Heart size={18} fill={wishlist.length > 0 ? 'currentColor' : 'none'} />
             {wishlist.length > 0 && (
               <span
-                className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 rounded-full text-[10px] font-semibold flex items-center justify-center text-white z-20 border border-[#0d0521]"
+                className="absolute top-0 right-0 translate-x-1/3 -translate-y-1/3 min-w-[18px] h-[18px] px-1 bg-red-500 rounded-full text-[11px] font-bold flex items-center justify-center text-white border-2 border-[#0d0521]"
+                style={{ zIndex: 9999 }}
               >
                 {wishlist.length > 99 ? '99+' : wishlist.length}
               </span>
@@ -112,14 +113,15 @@ export function NavBar() {
           <button
             onClick={toggleCart}
             aria-label={`购物车（${getCartCount()} 件商品）`}
-            className={`luxury-glass w-10 h-10 rounded-full flex items-center justify-center transition-colors relative ${
+            className={`luxury-glass w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
               getCartCount() > 0 ? 'text-primary' : 'text-foreground/60 hover:text-primary'
             }`}
           >
-            <ShoppingCart size={18} className="relative z-10" />
+            <ShoppingCart size={18} />
             {getCartCount() > 0 && (
               <span
-                className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-primary rounded-full text-[10px] font-semibold flex items-center justify-center text-primary-foreground z-20 border border-[#0d0521]"
+                className="absolute top-0 right-0 translate-x-1/3 -translate-y-1/3 min-w-[18px] h-[18px] px-1 bg-primary rounded-full text-[11px] font-bold flex items-center justify-center text-primary-foreground border-2 border-[#0d0521]"
+                style={{ zIndex: 9999 }}
               >
                 {getCartCount() > 99 ? '99+' : getCartCount()}
               </span>
