@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CreditCard, Wallet, Check } from 'lucide-react';
+import { X, CreditCard, Wallet, Check, User, MapPin } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { useOrders, type OrderItem } from '../hooks/useOrders';
+import { useOrders, useAddresses, type OrderItem, type Address } from '../hooks/useOrders';
+import { useAuth } from '../hooks/useAuth';
 
 interface FormErrors {
   name?: string;
@@ -37,8 +38,11 @@ export function CheckoutPanel() {
     getCartCount,
   } = useApp();
   const { createOrder } = useOrders();
+  const { addresses } = useAddresses();
+  const { user } = useAuth();
 
   const [paymentMethod, setPaymentMethod] = useState<'alipay' | 'wechat' | 'card'>('alipay');
+  const [selectedAddressId, setSelectedAddressId] = useState<string>('');
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -47,6 +51,32 @@ export function CheckoutPanel() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
+
+  // Auto-select default address when user has addresses
+  useEffect(() => {
+    if (addresses.length > 0 && !selectedAddressId) {
+      const def = addresses.find((a) => a.isDefault) ?? addresses[0];
+      setSelectedAddressId(def.id);
+    }
+  }, [addresses, selectedAddressId]);
+
+  // Fill form when address is selected
+  useEffect(() => {
+    if (!selectedAddressId) return;
+    const addr = addresses.find((a) => a.id === selectedAddressId);
+    if (!addr) return;
+    const combined = [addr.province, addr.city, addr.detail]
+      .filter(Boolean)
+      .join(' ');
+    setFormData((prev) => ({
+      ...prev,
+      name: addr.name,
+      phone: addr.phone,
+      address: combined,
+    }));
+    // Clear errors on autofill
+    setErrors({});
+  }, [selectedAddressId, addresses]);
 
   // Reset when opening
   useEffect(() => {
@@ -75,6 +105,12 @@ export function CheckoutPanel() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      setErrors({ name: '请先登录后再结算' });
+      // Trigger auth modal via global event
+      window.dispatchEvent(new CustomEvent('eclat:open-auth-from-checkout'));
+      return;
+    }
     const found = validateForm(formData);
     if (Object.keys(found).length > 0) {
       setErrors(found);
@@ -200,10 +236,45 @@ export function CheckoutPanel() {
                 </div>
               </div>
 
+              {/* Address selector (logged-in users with saved addresses) */}
+              {user && addresses.length > 0 && (
+                <div className="p-6 border-b border-border space-y-3">
+                  <h4 className="text-xs tracking-[0.2em] uppercase text-foreground/50 flex items-center gap-2">
+                    <MapPin size={12} /> 选择地址
+                  </h4>
+                  <select
+                    value={selectedAddressId}
+                    onChange={(e) => setSelectedAddressId(e.target.value)}
+                    className="w-full px-3 py-2 rounded bg-[rgba(255,255,255,0.04)] border outline-none text-sm appearance-none cursor-pointer"
+                    style={{
+                      borderColor: 'rgba(240,236,230,0.12)',
+                      backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23B8A8FF%27 stroke-width=%272%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e")',
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 0.5rem center',
+                      paddingRight: '1.75rem',
+                    }}
+                    aria-label="选择收货地址"
+                  >
+                    {addresses.map((a) => (
+                      <option
+                        key={a.id}
+                        value={a.id}
+                        style={{ background: '#0d0521' }}
+                      >
+                        {a.isDefault ? '★ ' : ''}{a.name} · {a.phone} · {a.province} {a.city}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-foreground/40 tracking-[0.1em]">
+                    选中后下方表单自动填充，可继续修改
+                  </p>
+                </div>
+              )}
+
               {/* Shipping form */}
               <div className="p-6 border-b border-border space-y-4">
-                <h4 className="text-xs tracking-[0.2em] uppercase text-foreground/50">
-                  收货信息
+                <h4 className="text-xs tracking-[0.2em] uppercase text-foreground/50 flex items-center gap-2">
+                  <User size={12} /> 收货信息
                 </h4>
 
                 <div>

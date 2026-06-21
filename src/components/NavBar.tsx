@@ -23,14 +23,18 @@ export function NavBar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Listen for open-auth request from UserCenter
+  // Listen for open-auth request from UserCenter / CartPanel
   useEffect(() => {
     const handler = () => {
       setAuthMode('login');
       setIsAuthModalOpen(true);
     };
     window.addEventListener('eclat:open-auth-from-center', handler);
-    return () => window.removeEventListener('eclat:open-auth-from-center', handler);
+    window.addEventListener('eclat:open-auth-from-checkout', handler);
+    return () => {
+      window.removeEventListener('eclat:open-auth-from-center', handler);
+      window.removeEventListener('eclat:open-auth-from-checkout', handler);
+    };
   }, []);
 
   const navLinks = [

@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { X, Plus, Minus } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 export function CartPanel() {
   const {
@@ -8,6 +9,19 @@ export function CartPanel() {
     removeFromCart, updateQty, getCartTotal, getCartCount,
     openCheckout,
   } = useApp();
+  const { user } = useAuth();
+
+  const handleCheckout = () => {
+    if (!user) {
+      // Not logged in - close cart, open auth modal
+      toggleCart();
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('eclat:open-auth-from-checkout'));
+      }, 200);
+      return;
+    }
+    openCheckout();
+  };
 
   return (
     <>
@@ -129,7 +143,7 @@ export function CartPanel() {
               </span>
             </div>
             <button
-              onClick={openCheckout}
+              onClick={handleCheckout}
               aria-label="前往结算"
               className="w-full py-3 rounded-full text-sm tracking-[0.18em] uppercase transition-all duration-300"
               style={{
