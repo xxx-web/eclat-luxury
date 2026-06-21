@@ -1,5 +1,15 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './useAuth';
+
+function generateOrderId(): string {
+  // Prefer crypto.randomUUID for collision-free IDs; fallback to timestamp+random
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `ECLAT-${crypto.randomUUID().toUpperCase()}`;
+  }
+  const ts = Date.now().toString(36).toUpperCase();
+  const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
+  return `ECLAT-${ts}${rand}`;
+}
 
 export interface OrderItem {
   productId: string;
@@ -81,42 +91,47 @@ function saveList<T>(key: string, list: T[]) {
 export function useOrders() {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>(() => loadList<Order>(orderKey(null)));
+  const userIdRef = useRef<string | null>(null);
 
-  // Re-load when user changes
+  // Re-load when user changes (guarded against out-of-order resolution)
   useEffect(() => {
-    setOrders(loadList<Order>(orderKey(user?.id ?? null)));
+    const nextUserId = user?.id ?? null;
+    userIdRef.current = nextUserId;
+    setOrders(loadList<Order>(orderKey(nextUserId)));
   }, [user?.id]);
 
   const createOrder = useCallback(
     (data: Omit<Order, 'id' | 'userId' | 'status' | 'createdAt'>): Order => {
+      const currentUserId = userIdRef.current;
       const order: Order = {
         ...data,
-        id: `ECLAT${Date.now().toString().slice(-8)}${Math.random().toString(36).slice(2, 5).toUpperCase()}`,
-        userId: user?.id ?? null,
+        id: generateOrderId(),
+        userId: currentUserId,
         status: 'paid', // simplified - mark as paid immediately
         paidAt: Date.now(),
         createdAt: Date.now(),
       };
-      const list = loadList<Order>(orderKey(user?.id ?? null));
+      const list = loadList<Order>(orderKey(currentUserId));
       list.unshift(order);
-      saveList(orderKey(user?.id ?? null), list);
+      saveList(orderKey(currentUserId), list);
       setOrders(list);
       return order;
     },
-    [user?.id]
+    []
   );
 
   const cancelOrder = useCallback(
     (orderId: string) => {
-      const list = loadList<Order>(orderKey(user?.id ?? null));
+      const currentUserId = userIdRef.current;
+      const list = loadList<Order>(orderKey(currentUserId));
       const idx = list.findIndex((o) => o.id === orderId);
       if (idx >= 0) {
         list[idx] = { ...list[idx], status: 'cancelled' };
-        saveList(orderKey(user?.id ?? null), list);
+        saveList(orderKey(currentUserId), list);
         setOrders(list);
       }
     },
-    [user?.id]
+    []
   );
 
   return { orders, createOrder, cancelOrder };
@@ -125,46 +140,52 @@ export function useOrders() {
 export function useAddresses() {
   const { user } = useAuth();
   const [addresses, setAddresses] = useState<Address[]>(() => loadList<Address>(addressKey(null)));
+  const userIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    setAddresses(loadList<Address>(addressKey(user?.id ?? null)));
+    const nextUserId = user?.id ?? null;
+    userIdRef.current = nextUserId;
+    setAddresses(loadList<Address>(addressKey(nextUserId)));
   }, [user?.id]);
 
   const addAddress = useCallback(
     (addr: Omit<Address, 'id'>) => {
-      const list = loadList<Address>(addressKey(user?.id ?? null));
-      const newAddr: Address = { ...addr, id: `addr_${Date.now()}` };
+      const currentUserId = userIdRef.current;
+      const list = loadList<Address>(addressKey(currentUserId));
+      const newAddr: Address = { ...addr, id: `addr_${Date.now()}_${Math.random().toString(36).slice(2, 8)}` };
       if (addr.isDefault) {
         // ensure only one default
         list.forEach((a) => (a.isDefault = false));
       }
       list.unshift(newAddr);
-      saveList(addressKey(user?.id ?? null), list);
+      saveList(addressKey(currentUserId), list);
       setAddresses(list);
       return newAddr;
     },
-    [user?.id]
+    []
   );
 
   const removeAddress = useCallback(
     (id: string) => {
-      const list = loadList<Address>(addressKey(user?.id ?? null)).filter((a) => a.id !== id);
-      saveList(addressKey(user?.id ?? null), list);
+      const currentUserId = userIdRef.current;
+      const list = loadList<Address>(addressKey(currentUserId)).filter((a) => a.id !== id);
+      saveList(addressKey(currentUserId), list);
       setAddresses(list);
     },
-    [user?.id]
+    []
   );
 
   const setDefaultAddress = useCallback(
     (id: string) => {
-      const list = loadList<Address>(addressKey(user?.id ?? null)).map((a) => ({
+      const currentUserId = userIdRef.current;
+      const list = loadList<Address>(addressKey(currentUserId)).map((a) => ({
         ...a,
         isDefault: a.id === id,
       }));
-      saveList(addressKey(user?.id ?? null), list);
+      saveList(addressKey(currentUserId), list);
       setAddresses(list);
     },
-    [user?.id]
+    []
   );
 
   return { addresses, addAddress, removeAddress, setDefaultAddress };

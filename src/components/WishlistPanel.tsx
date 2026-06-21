@@ -21,7 +21,21 @@ export function WishlistPanel() {
     };
   }, [isWishlistOpen, toggleWishlistPanel]);
 
-  const items = allProducts.filter((p) => wishlist.includes(p.id));
+  const wishlistIds = new Set(wishlist);
+  const matched = allProducts.filter((p) => wishlistIds.has(p.id));
+  // Fallback placeholders for IDs that no longer exist in the catalogue
+  const missing = wishlist
+    .filter((id) => !allProducts.some((p) => p.id === id))
+    .map((id) => ({
+      id,
+      name: '已下架臻品',
+      category: '—',
+      price: 0,
+      rating: 0,
+      img: '',
+      desc: '',
+    }));
+  const items = [...matched, ...missing];
 
   return (
     <AnimatePresence>

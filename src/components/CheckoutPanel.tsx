@@ -139,7 +139,8 @@ export function CheckoutPanel() {
 
       <AnimatePresence>
         {isCheckoutOpen && (
-          <motion.div
+          <motion.form
+            onSubmit={handleSubmit}
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
@@ -148,6 +149,7 @@ export function CheckoutPanel() {
             role="dialog"
             aria-modal="true"
             aria-label="结算"
+            noValidate
           >
             {/* Header */}
             <div className="p-6 border-b border-border flex items-center justify-between">
@@ -162,7 +164,7 @@ export function CheckoutPanel() {
             </div>
 
             {/* Body - scrollable */}
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto" noValidate>
+            <div className="flex-1 overflow-y-auto">
               {/* Items summary */}
               <div className="p-6 border-b border-border">
                 <h4 className="text-xs tracking-[0.2em] uppercase text-foreground/50 mb-3">
@@ -321,7 +323,7 @@ export function CheckoutPanel() {
                   })}
                 </div>
               </div>
-            </form>
+            </div>
 
             {/* Footer - price + submit */}
             <div className="p-6 border-t border-border" style={{ background: 'rgba(13,5,33,0.6)' }}>
@@ -350,8 +352,7 @@ export function CheckoutPanel() {
                 </div>
               </div>
               <button
-                type="button"
-                onClick={handleSubmit}
+                type="submit"
                 disabled={submitting || cart.length === 0}
                 className="w-full py-3 rounded-full text-foreground text-sm tracking-[0.15em] uppercase transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 style={{
@@ -381,7 +382,7 @@ export function CheckoutPanel() {
                 </p>
               )}
             </div>
-          </motion.div>
+          </motion.form>
         )}
       </AnimatePresence>
     </>

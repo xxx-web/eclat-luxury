@@ -16,6 +16,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const { register, login } = useAuth();
 
   useEffect(() => {
@@ -23,6 +24,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
       setMode(initialMode);
       setError('');
       setSuccess('');
+      setSubmitting(false);
     }
   }, [isOpen, initialMode]);
 
@@ -41,16 +43,20 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     setError('');
     setSuccess('');
+    setSubmitting(true);
 
     if (mode === 'register') {
       const result = register(name, email, password);
       if (!result.ok) {
         setError(result.error || '注册失败');
+        setSubmitting(false);
         return;
       }
       setSuccess('注册成功！欢迎加入 ÉCLAT');
+      setSubmitting(false);
       setTimeout(() => {
         onClose();
         setName('');
@@ -61,9 +67,11 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
       const result = login(email, password);
       if (!result.ok) {
         setError(result.error || '登录失败');
+        setSubmitting(false);
         return;
       }
       setSuccess('登录成功！');
+      setSubmitting(false);
       setTimeout(() => {
         onClose();
         setName('');
@@ -77,6 +85,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
     setMode(mode === 'login' ? 'register' : 'login');
     setError('');
     setSuccess('');
+    setSubmitting(false);
   };
 
   return (
@@ -247,21 +256,24 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full py-3 rounded-full text-foreground text-sm tracking-[0.15em] uppercase transition-all duration-300"
+                disabled={submitting}
+                className="w-full py-3 rounded-full text-foreground text-sm tracking-[0.15em] uppercase transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
                   background: 'linear-gradient(135deg, rgba(155,127,255,0.25), rgba(212,168,75,0.2))',
                   border: '1px solid rgba(155, 127, 255, 0.4)',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(155,127,255,0.4), rgba(212,168,75,0.3))';
-                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(155, 127, 255, 0.3)';
+                  if (!submitting) {
+                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(155,127,255,0.4), rgba(212,168,75,0.3))';
+                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(155, 127, 255, 0.3)';
+                  }
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'linear-gradient(135deg, rgba(155,127,255,0.25), rgba(212,168,75,0.2))';
                   e.currentTarget.style.boxShadow = '';
                 }}
               >
-                {mode === 'login' ? '登录' : '注册'}
+                {submitting ? '处理中...' : mode === 'login' ? '登录' : '注册'}
               </button>
 
               {/* Switch Mode */}

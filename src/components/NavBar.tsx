@@ -23,6 +23,16 @@ export function NavBar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Listen for open-auth request from UserCenter
+  useEffect(() => {
+    const handler = () => {
+      setAuthMode('login');
+      setIsAuthModalOpen(true);
+    };
+    window.addEventListener('eclat:open-auth-from-center', handler);
+    return () => window.removeEventListener('eclat:open-auth-from-center', handler);
+  }, []);
+
   const navLinks = [
     { label: '品类', href: '#categories' },
     { label: '臻选', href: '#products' },
