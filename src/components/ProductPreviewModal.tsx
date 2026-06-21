@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+import { useToast } from '../context/ToastContext';
 import { Star, ShoppingCart, Heart, Share2 } from 'lucide-react';
 import { useReviews } from '../hooks/useOrders';
 import { useAuth } from '../hooks/useAuth';
@@ -9,11 +10,28 @@ export function ProductPreviewModal() {
   const { isPreviewOpen, closePreview, previewProduct, addToCart, toggleWishlist, wishlist } = useApp();
   const { getReviewsFor, addReview } = useReviews();
   const { user } = useAuth();
+  const { notifyAddedToCart, notifyAddedToWishlist, notifyRemovedFromWishlist } = useToast();
   const [userRating, setUserRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
   const [hoverRating, setHoverRating] = useState(0);
 
   if (!previewProduct) return null;
+  const isWish = wishlist.includes(previewProduct.id);
+
+  const handleAddToCart = () => {
+    addToCart(previewProduct);
+    notifyAddedToCart(previewProduct.name);
+    closePreview();
+  };
+
+  const handleToggleWishlist = () => {
+    if (isWish) {
+      notifyRemovedFromWishlist(previewProduct.name);
+    } else {
+      notifyAddedToWishlist(previewProduct.name);
+    }
+    toggleWishlist(previewProduct.id);
+  };
   const isWish = wishlist.includes(previewProduct.id);
   const reviews = getReviewsFor(previewProduct.id);
   const averageRating =
@@ -110,10 +128,7 @@ export function ProductPreviewModal() {
               {/* Actions */}
               <div className="flex items-center gap-3 mb-6">
                 <button
-                  onClick={() => {
-                    addToCart(previewProduct);
-                    closePreview();
-                  }}
+                  onClick={handleAddToCart}
                   className="flex-1 py-3 rounded-full text-sm tracking-[0.18em] uppercase transition-all duration-300"
                   style={{
                     background:
@@ -125,7 +140,7 @@ export function ProductPreviewModal() {
                   加入购物袋
                 </button>
                 <button
-                  onClick={() => toggleWishlist(previewProduct.id)}
+                  onClick={handleToggleWishlist}
                   aria-label={isWish ? '取消收藏' : '加入收藏'}
                   className={`w-11 h-11 rounded-full border flex items-center justify-center transition-all duration-300 ${
                     isWish ? 'text-red-400 border-red-400/50' : 'text-foreground/60 border-border hover:text-red-400'

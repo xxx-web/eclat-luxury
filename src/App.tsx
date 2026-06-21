@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
+import { ToastProvider } from './context/ToastContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { NavBar } from './components/NavBar';
 import { HeroSection } from './components/HeroSection';
@@ -106,7 +107,9 @@ function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <AppProvider>
-          <AppInner />
+          <ToastProvider>
+            <AppInner />
+          </ToastProvider>
         </AppProvider>
       </BrowserRouter>
     </ErrorBoundary>

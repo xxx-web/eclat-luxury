@@ -2,11 +2,13 @@ import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, ShoppingCart, Star } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useToast } from '../context/ToastContext';
 import { allProducts } from '../data/products';
 
 export function WishlistPanel() {
   const { isWishlistOpen, toggleWishlistPanel, wishlist, toggleWishlist, addToCart, openPreview } =
     useApp();
+  const { notifyAddedToCart, notifyRemovedFromWishlist } = useToast();
 
   useEffect(() => {
     if (!isWishlistOpen) return;
@@ -162,7 +164,10 @@ export function WishlistPanel() {
                       </div>
                       <div className="flex flex-col gap-2 flex-shrink-0">
                         <button
-                          onClick={() => addToCart(item)}
+                          onClick={() => {
+                            addToCart(item);
+                            notifyAddedToCart(item.name);
+                          }}
                           aria-label={`将 ${item.name} 加入购物车`}
                           className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
                           style={{
@@ -175,7 +180,10 @@ export function WishlistPanel() {
                           <ShoppingCart size={14} />
                         </button>
                         <button
-                          onClick={() => toggleWishlist(item.id)}
+                          onClick={() => {
+                            toggleWishlist(item.id);
+                            notifyRemovedFromWishlist(item.name);
+                          }}
                           aria-label={`从心愿单移除 ${item.name}`}
                           className="w-9 h-9 rounded-full flex items-center justify-center text-red-400 hover:text-red-300 transition-colors"
                           style={{

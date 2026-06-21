@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+import { useToast } from '../context/ToastContext';
 import { Star, Eye, Heart, ShoppingCart, Plus, Minus } from 'lucide-react';
 import { allProducts } from '../data/products';
 
@@ -108,6 +109,21 @@ export function FeaturedProducts() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
   const { addToCart, cart, wishlist, toggleWishlist } = useApp();
+  const { notifyAddedToCart, notifyAddedToWishlist, notifyRemovedFromWishlist } = useToast();
+
+  const handleToggleWishlist = (id: string, name: string) => {
+    if (wishlist.includes(id)) {
+      notifyRemovedFromWishlist(name);
+    } else {
+      notifyAddedToWishlist(name);
+    }
+    toggleWishlist(id);
+  };
+
+  const handleAddToCart = (product: { id: string; name: string }) => {
+    addToCart(product);
+    notifyAddedToCart(product.name);
+  };
 
   const filtered = activeFilter === '全部臻品'
     ? [...allProducts]
@@ -277,7 +293,7 @@ export function FeaturedProducts() {
                 }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(100%)'; }}
-                onClick={() => addToCart(product)}
+                onClick={() => handleAddToCart(product)}
               >
                 <Eye size={14} /> 快速鉴赏
               </div>
@@ -292,7 +308,7 @@ export function FeaturedProducts() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
                   <button
-                    onClick={() => toggleWishlist(product.id)}
+                    onClick={() => handleToggleWishlist(product.id, product.name)}
                     aria-label={wishlist.includes(product.id) ? `从心愿单移除 ${product.name}` : `加入心愿单 ${product.name}`}
                     aria-pressed={wishlist.includes(product.id)}
                     className="w-9 h-9 rounded-full border border-[rgba(240,236,230,0.08)] flex items-center justify-center text-foreground/50 hover:border-red-400/50 hover:text-red-400 transition-colors text-sm"
@@ -312,7 +328,7 @@ export function FeaturedProducts() {
                   ¥{product.price.toLocaleString()}
                 </div>
                 <button
-                  onClick={() => addToCart(product)}
+                  onClick={() => handleAddToCart(product)}
                   aria-label={isInCart(product.id) ? `${product.name} 已在购物袋中` : `将 ${product.name} 加入购物袋`}
                   aria-pressed={isInCart(product.id)}
                   className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300"
