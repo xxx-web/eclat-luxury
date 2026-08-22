@@ -1,10 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { useToast } from '../context/ToastContext';
-import { Star, ShoppingCart, Heart, Share2 } from 'lucide-react';
+import { Star, ShoppingCart, Heart } from 'lucide-react';
 import { useReviews } from '../hooks/useOrders';
 import { useAuth } from '../hooks/useAuth';
-import { useState } from 'react';
+import { useUser } from '../context/UserContext';
+import { useState, useEffect } from 'react';
 
 export function ProductPreviewModal() {
   const { isPreviewOpen, closePreview, previewProduct, addToCart, toggleWishlist, wishlist } = useApp();
@@ -14,6 +15,14 @@ export function ProductPreviewModal() {
   const [userRating, setUserRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
   const [hoverRating, setHoverRating] = useState(0);
+  const { addToViewHistory } = useUser();
+
+  // 追踪浏览行为：预览打开时记录到 UserContext，供推荐系统使用
+  useEffect(() => {
+    if (isPreviewOpen && previewProduct) {
+      addToViewHistory(previewProduct.id);
+    }
+  }, [isPreviewOpen, previewProduct, addToViewHistory]);
 
   if (!previewProduct) return null;
   const isWish = wishlist.includes(previewProduct.id);

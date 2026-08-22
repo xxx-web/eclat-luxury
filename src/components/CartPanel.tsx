@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { X, Plus, Minus } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';

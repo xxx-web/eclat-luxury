@@ -8,7 +8,6 @@ import {
   LogOut,
   Star,
   Clock,
-  Check,
   Plus,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -45,7 +44,7 @@ export function UserCenter({ isOpen, onClose, onOpenAuth }: UserCenterProps) {
   const { user, logout } = useAuth();
   const { orders, cancelOrder } = useOrders();
   const { addresses, addAddress, removeAddress, setDefaultAddress } = useAddresses();
-  const { addReview, getReviewsFor } = useReviews();
+  const { addReview } = useReviews();
 
   const [activeTab, setActiveTab] = useState<Tab>('orders');
   const [reviewingOrder, setReviewingOrder] = useState<string | null>(null);

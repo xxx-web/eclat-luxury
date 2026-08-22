@@ -97,7 +97,7 @@ export function ClosingCTASection() {
 }
 
 // BlurText component (inline since it's used here)
-function BlurText({ text, className, delay }: { text: string; className?: string; delay?: number }) {
+function BlurText({ text, className }: { text: string; className?: string; delay?: number }) {
   return (
     <h2 className={className} style={{ fontFamily: 'var(--font-serif)', fontWeight: 300 }}>
       {text}

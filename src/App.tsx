@@ -18,6 +18,8 @@ import { CheckoutPanel } from './components/CheckoutPanel';
 import { ProductPreviewModal } from './components/ProductPreviewModal';
 import { OrderConfirmation } from './components/OrderConfirmation';
 import { UserCenter } from './components/UserCenter';
+import { UserProvider } from './context/UserContext';
+import { RecommendationSection } from './components/RecommendationSection';
 
 function AppInner() {
   const { isCartOpen, toggleCart, isCheckoutOpen, closeCheckout, isPreviewOpen, closePreview } = useApp();
@@ -54,6 +56,7 @@ function AppInner() {
         <SectionDivider />
         <CategorySection />
         <FeaturedProducts />
+        <RecommendationSection title="为您甄选" />
         <BrandStorySection />
         <TestimonialsSection />
       </main>
@@ -108,7 +111,9 @@ function App() {
       <BrowserRouter>
         <AppProvider>
           <ToastProvider>
-            <AppInner />
+            <UserProvider>
+              <AppInner />
+            </UserProvider>
           </ToastProvider>
         </AppProvider>
       </BrowserRouter>

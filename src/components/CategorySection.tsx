@@ -53,11 +53,16 @@ export function CategorySection() {
         {categories.map((cat, i) => (
           <motion.a
             key={cat.name}
-            href={cat.href}
+            href="#products"
+            onClick={(e) => {
+              e.preventDefault();
+              window.dispatchEvent(new CustomEvent('eclat:select-category', { detail: cat.name }));
+              document.getElementById('products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
             initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: i * 0.15 }}
-            className="group relative rounded-xl overflow-hidden aspect-[3/4] border border-border hover:border-purple/30 transition-all duration-500"
+            className="group relative rounded-xl overflow-hidden aspect-[3/4] border border-border hover:border-purple/30 transition-all duration-500 cursor-pointer"
             style={{ background: 'rgba(26,26,46,0.6)' }}
           >
             {/* Background image with zoom on hover */}

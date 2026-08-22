@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CreditCard, Wallet, Check, User, MapPin } from 'lucide-react';
+import { X, CreditCard, Check, User, MapPin } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { useOrders, useAddresses, type OrderItem, type Address } from '../hooks/useOrders';
+import { useOrders, useAddresses, type OrderItem } from '../hooks/useOrders';
 import { useAuth } from '../hooks/useAuth';
 
 interface FormErrors {

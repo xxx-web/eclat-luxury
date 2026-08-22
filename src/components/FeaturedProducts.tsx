@@ -1,9 +1,11 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { useToast } from '../context/ToastContext';
-import { Star, Eye, Heart, ShoppingCart, Plus, Minus } from 'lucide-react';
+import { Eye, Heart, ShoppingCart } from 'lucide-react';
 import { allProducts } from '../data/products';
+import { useUser } from '../context/UserContext';
+import type { Product } from '../services/api';
 
 /*
 const _legacyAllProducts = [
@@ -108,8 +110,22 @@ export function FeaturedProducts() {
   const [sortBy, setSortBy] = useState('默认排序');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
-  const { addToCart, cart, wishlist, toggleWishlist } = useApp();
+  const { addToCart, cart, wishlist, toggleWishlist, openPreview } = useApp();
   const { notifyAddedToCart, notifyAddedToWishlist, notifyRemovedFromWishlist } = useToast();
+  const { toggleLike } = useUser();
+
+  // Listen for category selection from CategorySection
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<string>).detail;
+      if (detail && filters.includes(detail)) {
+        setActiveFilter(detail);
+        setCurrentPage(1);
+      }
+    };
+    window.addEventListener('eclat:select-category', handler);
+    return () => window.removeEventListener('eclat:select-category', handler);
+  }, []);
 
   const handleToggleWishlist = (id: string, name: string) => {
     if (wishlist.includes(id)) {
@@ -118,9 +134,10 @@ export function FeaturedProducts() {
       notifyAddedToWishlist(name);
     }
     toggleWishlist(id);
+    toggleLike(id); // 追踪到 UserContext 供推荐使用
   };
 
-  const handleAddToCart = (product: { id: string; name: string }) => {
+  const handleAddToCart = (product: Product) => {
     addToCart(product);
     notifyAddedToCart(product.name);
   };
@@ -265,7 +282,7 @@ export function FeaturedProducts() {
             }}
           >
             {/* Image */}
-            <div className="relative aspect-square overflow-hidden group">
+            <div className="relative aspect-square overflow-hidden group cursor-pointer" onClick={() => openPreview(product)}>
               <img
                 src={product.img}
                 alt={product.name}
@@ -285,15 +302,12 @@ export function FeaturedProducts() {
               )}
               {/* Quick View */}
               <div
-                className="absolute bottom-0 left-0 right-0 p-3 flex items-center justify-center gap-2 text-xs tracking-[0.15em] uppercase text-foreground/60 transition-all duration-300"
+                className="absolute bottom-0 left-0 right-0 p-3 flex items-center justify-center gap-2 text-xs tracking-[0.15em] uppercase text-foreground/60 transition-all duration-300 translate-y-full group-hover:translate-y-0"
                 style={{
                   background: 'rgba(13,5,33,0.9)',
                   backdropFilter: 'blur(12px)',
-                  transform: 'translateY(100%)',
                 }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(100%)'; }}
-                onClick={() => handleAddToCart(product)}
+                onClick={(e) => { e.stopPropagation(); openPreview(product); }}
               >
                 <Eye size={14} /> 快速鉴赏
               </div>

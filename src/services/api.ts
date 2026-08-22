@@ -27,14 +27,14 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}): Promise
 // ==================== 类型定义 ====================
 
 export interface Product {
-  id: number;
+  id: string;
   category: string;
   name: string;
   price: number;
   desc: string;
-  details: string;
+  details?: string;
   img: string;
-  tag: string;
+  tag?: string;
   rating: number;
   slug?: string;
   material?: string;
@@ -72,14 +72,14 @@ export interface PaginationResult {
 
 export interface UserBehavior {
   userId: string;
-  views: Array<{ productId: number; timestamp: number }>;
-  likes: number[];
-  purchases: number[];
+  views: Array<{ productId: string; timestamp: number }>;
+  likes: string[];
+  purchases: string[];
 }
 
 export interface RecommendationRequest {
   userId?: string;
-  productId?: number;
+  productId?: string;
   limit?: number;
 }
 
@@ -212,7 +212,7 @@ export async function subscribe(email: string): Promise<{ success: boolean; mess
  */
 export async function trackUserBehavior(data: {
   userId: string;
-  productId: number;
+  productId: string;
   action: 'view' | 'like' | 'purchase';
   timestamp?: number;
 }): Promise<void> {

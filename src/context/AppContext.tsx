@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react';
-import { Product } from '../services/api';
+import { type Product } from '../services/api';
 
 interface CartItem {
   id: string;
