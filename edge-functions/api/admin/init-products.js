@@ -55,18 +55,9 @@ const initialProducts = [
 export async function onRequestPost(context) {
   try {
     const { request, env } = context;
-    
-    // 简单的安全检查（生产环境应使用更严格的方法）
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.includes('init-products-secret')) {
-      return new Response(JSON.stringify({
-        success: false,
-        message: '无权访问'
-      }), {
-        status: 403,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
+
+    // 管理员鉴权统一由 _middleware.js 处理（ADMIN_SECRET + Bearer，精确匹配 + 恒定时间比较），
+    // 此处不再重复校验，避免与中间件两套不一致的规则。
 
     // 检查是否已有数据
     if (!env.PRODUCTS_KV) {

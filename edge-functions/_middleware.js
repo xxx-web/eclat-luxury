@@ -18,10 +18,24 @@ const PROTECTED_ROUTES = [
   '/api/orders/user'
 ];
 
-// 管理员专属路由
+// 管理员专属路由（鉴权密钥来自环境变量 ADMIN_SECRET，见 .env.example）
 const ADMIN_ROUTES = [
   '/api/admin/'
 ];
+
+/**
+ * 恒定时间字符串比较，避免时序侧信道泄露密钥长度/内容。
+ * Edge Functions 运行时无 Node Buffer，用 UTF-8 字节异或归约实现。
+ */
+function safeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const ea = new TextEncoder().encode(a);
+  const eb = new TextEncoder().encode(b);
+  if (ea.length !== eb.length) return false;
+  let diff = 0;
+  for (let i = 0; i < ea.length; i++) diff |= ea[i] ^ eb[i];
+  return diff === 0;
+}
 
 /** 从 Cookie 或 Authorization 头解析会话 token（与 api/profile.js、api/logout.js 保持一致） */
 function getSessionToken(request) {
@@ -90,9 +104,21 @@ export async function onRequest(context) {
   }
 
   // ===== 管理员路由检查 =====
+  // 管理员鉴权与用户会话解耦：使用独立密钥 ADMIN_SECRET（环境变量），
+  // 调用方通过 Authorization: Bearer <ADMIN_SECRET> 携带。
+  // 关键修复（P0-3）：旧实现用 authHeader.includes('admin-secret') 做子串匹配，
+  // 等于把"密码"明文写进公开仓库，且任意包含该子串的头部都能过 → 形同虚设。
+  // 现改为：精确匹配 + 恒定时间比较；ADMIN_SECRET 未配置时一律拒绝（fail-closed），不降级放行。
   if (ADMIN_ROUTES.some(route => path.startsWith(route))) {
+    const expected = env.ADMIN_SECRET;
+    if (!expected) {
+      console.error('[ADMIN] ADMIN_SECRET 未配置，拒绝所有管理员请求（fail-closed）');
+      return jsonResponse({ success: false, message: '服务器未配置管理员密钥' }, 500);
+    }
     const authHeader = request.headers.get('Authorization') || '';
-    if (!authHeader.includes('admin-secret')) {
+    const m = authHeader.match(/^Bearer\s+(.+)$/i);
+    const provided = m ? m[1].trim() : '';
+    if (!safeEqual(provided, expected)) {
       return jsonResponse({ success: false, message: '无权访问管理员接口' }, 403);
     }
   }
