@@ -54,9 +54,9 @@ export async function onRequest(context) {
         message: '请先登录'
       }), {
         status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      };
-    }
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 
     const token = authHeader.replace('Bearer ', '');
     try {
@@ -68,7 +68,7 @@ export async function onRequest(context) {
         }), {
           status: 401,
           headers: { 'Content-Type': 'application/json' }
-        };
+        });
       }
     } catch (e) {
       console.warn('[WARN] Token validation skipped:', e.message);
@@ -86,8 +86,8 @@ export async function onRequest(context) {
       }), {
         status: 403,
         headers: { 'Content-Type': 'application/json' }
-      };
-    }
+    });
+  }
   }
 
   // ===== 执行后续处理函数 =====

@@ -1,137 +1,132 @@
 import { useState, useEffect, useCallback } from 'react';
 
+/**
+ * 鉴权 Hook —— 改为走后端 KV 鉴权，移除 localStorage 明文密码（P0-1）。
+ *
+ * 流程：
+ * - 登录/注册请求发往 /api/login、/api/register（密码在后端用 SHA-256 校验）。
+ * - 后端通过 HttpOnly + SameSite=Strict Cookie 维持会话，前端 JS 无法读取 token。
+ * - 启动时调用 /api/profile，浏览器自动携带 Cookie 还原会话。
+ * - 不再在客户端存储任何密码明文。
+ */
+
+const API_BASE = '/api';
+
 export interface User {
   id: string;
   name: string;
   email: string;
-  createdAt: number;
+  createdAt: string;
+  profile?: {
+    avatar?: string;
+    phone?: string;
+    address?: string;
+  };
 }
 
-const STORAGE_KEY_USERS = 'eclat_users';
-const STORAGE_KEY_CURRENT = 'eclat_current_user';
-
-interface StoredUser extends User {
-  password: string;
+export interface AuthResult {
+  ok: boolean;
+  error?: string;
 }
 
-function loadUsers(): StoredUser[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_USERS);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveUsers(users: StoredUser[]) {
-  try {
-    localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
-  } catch {
-    // ignore
-  }
-}
-
-function loadCurrentUser(): User | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_CURRENT);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (parsed && parsed.id && parsed.email) {
-      return parsed as User;
-    }
-    return null;
-  } catch {
-    return null;
-  }
+async function request(path: string, options?: RequestInit): Promise<Response> {
+  return fetch(`${API_BASE}${path}`, {
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  });
 }
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(() => loadCurrentUser());
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  // 启动时用 Cookie 还原会话（HttpOnly Cookie 由浏览器自动携带）
   useEffect(() => {
-    const handleStorage = () => {
-      setUser(loadCurrentUser());
+    let active = true;
+    (async () => {
+      try {
+        const res = await request('/profile');
+        if (res.ok) {
+          const data = (await res.json()) as { user?: User };
+          if (active && data?.user) setUser(data.user);
+        }
+      } catch {
+        // 网络/服务异常时保持未登录，不阻塞页面
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
     };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
-  const register = useCallback((name: string, email: string, password: string): { ok: boolean; error?: string } => {
-    if (!name.trim() || !email.trim() || !password) {
-      return { ok: false, error: '请填写所有字段' };
-    }
-    if (password.length < 6) {
-      return { ok: false, error: '密码至少 6 位' };
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return { ok: false, error: '邮箱格式不正确' };
-    }
-    const users = loadUsers();
-    if (users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
-      return { ok: false, error: '该邮箱已注册' };
-    }
-    const newUser: StoredUser = {
-      id: `user_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      password,
-      createdAt: Date.now(),
-    };
-    users.push(newUser);
-    saveUsers(users);
+  const register = useCallback(
+    async (name: string, email: string, password: string): Promise<AuthResult> => {
+      if (!name.trim() || !email.trim() || !password) {
+        return { ok: false, error: '请填写所有字段' };
+      }
+      if (password.length < 6) {
+        return { ok: false, error: '密码至少 6 位' };
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return { ok: false, error: '邮箱格式不正确' };
+      }
+      try {
+        const res = await request('/register', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: name.trim(),
+            email: email.trim().toLowerCase(),
+            password,
+          }),
+        });
+        const data = (await res.json()) as { success?: boolean; message?: string };
+        if (!res.ok || !data?.success) {
+          return { ok: false, error: data?.message || '注册失败' };
+        }
+        // 注册成功但后端不下发会话 Cookie，自动登录以建立会话
+        return await login(email.trim().toLowerCase(), password);
+      } catch {
+        return { ok: false, error: '网络错误，请稍后重试' };
+      }
+    },
+    [login]
+  );
 
-    const publicUser: User = {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      createdAt: newUser.createdAt,
-    };
-    try {
-      localStorage.setItem(STORAGE_KEY_CURRENT, JSON.stringify(publicUser));
-    } catch {
-      // ignore
-    }
-    setUser(publicUser);
-    return { ok: true };
-  }, []);
+  const login = useCallback(
+    async (email: string, password: string): Promise<AuthResult> => {
+      if (!email.trim() || !password) {
+        return { ok: false, error: '请填写邮箱和密码' };
+      }
+      try {
+        const res = await request('/login', {
+          method: 'POST',
+          body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+        });
+        const data = (await res.json()) as { success?: boolean; message?: string; user?: User };
+        if (!res.ok || !data?.success) {
+          return { ok: false, error: data?.message || '登录失败' };
+        }
+        if (data?.user) setUser(data.user);
+        return { ok: true };
+      } catch {
+        return { ok: false, error: '网络错误，请稍后重试' };
+      }
+    },
+    []
+  );
 
-  const login = useCallback((email: string, password: string): { ok: boolean; error?: string } => {
-    if (!email.trim() || !password) {
-      return { ok: false, error: '请填写邮箱和密码' };
-    }
-    const users = loadUsers();
-    const found = users.find(
-      (u) => u.email.toLowerCase() === email.trim().toLowerCase() && u.password === password
-    );
-    if (!found) {
-      return { ok: false, error: '邮箱或密码错误' };
-    }
-    const publicUser: User = {
-      id: found.id,
-      name: found.name,
-      email: found.email,
-      createdAt: found.createdAt,
-    };
+  const logout = useCallback(async () => {
     try {
-      localStorage.setItem(STORAGE_KEY_CURRENT, JSON.stringify(publicUser));
+      await request('/logout', { method: 'POST' });
     } catch {
-      // ignore
-    }
-    setUser(publicUser);
-    return { ok: true };
-  }, []);
-
-  const logout = useCallback(() => {
-    try {
-      localStorage.removeItem(STORAGE_KEY_CURRENT);
-    } catch {
-      // ignore
+      // 即使请求失败也清除本地会话状态
     }
     setUser(null);
   }, []);
 
-  return { user, register, login, logout };
+  return { user, loading, register, login, logout };
 }

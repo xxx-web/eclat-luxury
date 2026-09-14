@@ -40,7 +40,7 @@ export async function onRequestGet(context) {
           rating: 4.9,
           reviews: 128,
           description: '18K 白金镶嵌月光石，展现柔和优雅的光泽',
-          img: 'static/images/yueguang.png',
+          img: '/images/yueguang.png',
           isNew: true,
           isBestseller: false
         },
@@ -53,7 +53,7 @@ export async function onRequestGet(context) {
           rating: 4.8,
           reviews: 96,
           description: '18K 玫瑰金镶嵌钻石，精致优雅',
-          img: 'static/images/gold_rose_earring.png',
+          img: '/images/gold_rose_earring.png',
           isNew: false,
           isBestseller: true
         },
@@ -66,7 +66,7 @@ export async function onRequestGet(context) {
           rating: 4.9,
           reviews: 75,
           description: '天然翡翠配以钻石环绕，奢华典雅',
-          img: 'static/images/emerald_ring.png',
+          img: '/images/emerald_ring.png',
           isNew: false,
           isBestseller: false
         },
@@ -79,7 +79,7 @@ export async function onRequestGet(context) {
           rating: 4.7,
           reviews: 112,
           description: '南海珍珠配以钻石扣，温润典雅',
-          img: 'static/images/pearl_bracelet.png',
+          img: '/images/pearl_bracelet.png',
           isNew: true,
           isBestseller: false
         },
@@ -92,7 +92,7 @@ export async function onRequestGet(context) {
           rating: 4.9,
           reviews: 256,
           description: '深邃神秘的东方调香水，黑琥珀与沉香的完美融合',
-          img: 'static/images/noir_absolu_perfume.png',
+          img: '/images/noir_absolu_perfume.png',
           isNew: false,
           isBestseller: true
         },
@@ -105,7 +105,7 @@ export async function onRequestGet(context) {
           rating: 4.8,
           reviews: 189,
           description: '清新花香调，保加利亚玫瑰与柑橘的轻盈交织',
-          img: 'static/images/rose_celeste_perfume.png',
+          img: '/images/rose_celeste_perfume.png',
           isNew: true,
           isBestseller: false
         },
@@ -118,7 +118,7 @@ export async function onRequestGet(context) {
           rating: 4.7,
           reviews: 145,
           description: '木质调香水，檀香与雪松的宁静力量',
-          img: 'static/images/bois_sacre_perfume.png',
+          img: '/images/bois_sacre_perfume.png',
           isNew: false,
           isBestseller: false
         },
@@ -131,7 +131,7 @@ export async function onRequestGet(context) {
           rating: 4.8,
           reviews: 89,
           description: '经典菱格纹设计，小牛皮质地，优雅实用',
-          img: 'static/images/quilted_tote_bag.png',
+          img: '/images/quilted_tote_bag.png',
           isNew: false,
           isBestseller: true
         },
@@ -144,7 +144,7 @@ export async function onRequestGet(context) {
           rating: 4.7,
           reviews: 67,
           description: '精致编织皮革，金属链条装饰，时尚与经典的融合',
-          img: 'static/images/woven_chain_bag.png',
+          img: '/images/woven_chain_bag.png',
           isNew: true,
           isBestseller: false
         }

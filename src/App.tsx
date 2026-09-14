@@ -19,6 +19,7 @@ import { ProductPreviewModal } from './components/ProductPreviewModal';
 import { OrderConfirmation } from './components/OrderConfirmation';
 import { UserCenter } from './components/UserCenter';
 import { UserProvider } from './context/UserContext';
+import { ProductProvider } from './context/ProductContext';
 import { RecommendationSection } from './components/RecommendationSection';
 
 function AppInner() {
@@ -112,7 +113,9 @@ function App() {
         <AppProvider>
           <ToastProvider>
             <UserProvider>
-              <AppInner />
+              <ProductProvider>
+                <AppInner />
+              </ProductProvider>
             </UserProvider>
           </ToastProvider>
         </AppProvider>

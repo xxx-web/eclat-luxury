@@ -48,6 +48,6 @@ export async function onRequestGet(context) {
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
-    };
+    });
   }
 }

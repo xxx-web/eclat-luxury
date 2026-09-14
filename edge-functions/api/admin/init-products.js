@@ -19,7 +19,7 @@ const initialProducts = [
     rating: 4.9,
     reviews: 128,
     description: '18K 白金镶嵌月光石，展现柔和优雅的光泽',
-    img: 'static/images/yueguang.png',
+    img: '/images/yueguang.png',
     isNew: true,
     isBestseller: false
   },
@@ -32,7 +32,7 @@ const initialProducts = [
     rating: 4.8,
     reviews: 96,
     description: '18K 玫瑰金镶嵌钻石，精致优雅',
-    img: 'static/images/gold_rose_earring.png',
+    img: '/images/gold_rose_earring.png',
     isNew: false,
     isBestseller: true
   },
@@ -45,7 +45,7 @@ const initialProducts = [
     rating: 4.9,
     reviews: 75,
     description: '天然翡翠配以钻石环绕，奢华典雅',
-    img: 'static/images/emerald_ring.png',
+    img: '/images/emerald_ring.png',
     isNew: false,
     isBestseller: false
   }

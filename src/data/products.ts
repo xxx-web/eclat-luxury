@@ -1,13 +1,4 @@
-export interface Product {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  rating: number;
-  img: string;
-  desc: string;
-  tag?: string;
-}
+import type { Product } from '../shared/types';
 
 export const allProducts: Product[] = [
   {

@@ -2,7 +2,7 @@
 
 ## 方案一：部署到 EdgeOne Pages（推荐）
 
-ÉCLAT 为 EdgeOne 做了专门适配，部署后可使用全部 18 个后端 API 端点。
+ÉCLAT 为 EdgeOne 做了专门适配，部署后可使用 `edge-functions/` 下的全部后端 API 端点。该目录是**唯一后端**——已移除 `functions/` 与 `cloud-functions/` 两套孤儿后端，避免多后端路由重叠与 KV 绑定不一致。
 
 ### 前置条件
 
