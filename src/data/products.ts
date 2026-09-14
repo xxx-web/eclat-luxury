@@ -1,5 +1,8 @@
 import type { Product } from '../shared/types';
 
+// 再导出 Product 类型，兼容 `import { type Product } from '../data/products'` 用法
+export type { Product };
+
 export const allProducts: Product[] = [
   {
     id: 'yueguang',

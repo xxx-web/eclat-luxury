@@ -62,6 +62,32 @@ export function useAuth() {
     };
   }, []);
 
+  // 注意：login 必须先于 register 定义。
+  // register 的依赖数组 [login] 会在其初始化时被求值，若 login 声明在后会触发
+  // TDZ（Cannot access 'login' before initialization）导致首屏 ErrorBoundary 崩溃。
+  const login = useCallback(
+    async (email: string, password: string): Promise<AuthResult> => {
+      if (!email.trim() || !password) {
+        return { ok: false, error: '请填写邮箱和密码' };
+      }
+      try {
+        const res = await request('/login', {
+          method: 'POST',
+          body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+        });
+        const data = (await res.json()) as { success?: boolean; message?: string; user?: User };
+        if (!res.ok || !data?.success) {
+          return { ok: false, error: data?.message || '登录失败' };
+        }
+        if (data?.user) setUser(data.user);
+        return { ok: true };
+      } catch {
+        return { ok: false, error: '网络错误，请稍后重试' };
+      }
+    },
+    []
+  );
+
   const register = useCallback(
     async (name: string, email: string, password: string): Promise<AuthResult> => {
       if (!name.trim() || !email.trim() || !password) {
@@ -94,29 +120,6 @@ export function useAuth() {
       }
     },
     [login]
-  );
-
-  const login = useCallback(
-    async (email: string, password: string): Promise<AuthResult> => {
-      if (!email.trim() || !password) {
-        return { ok: false, error: '请填写邮箱和密码' };
-      }
-      try {
-        const res = await request('/login', {
-          method: 'POST',
-          body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
-        });
-        const data = (await res.json()) as { success?: boolean; message?: string; user?: User };
-        if (!res.ok || !data?.success) {
-          return { ok: false, error: data?.message || '登录失败' };
-        }
-        if (data?.user) setUser(data.user);
-        return { ok: true };
-      } catch {
-        return { ok: false, error: '网络错误，请稍后重试' };
-      }
-    },
-    []
   );
 
   const logout = useCallback(async () => {

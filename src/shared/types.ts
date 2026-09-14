@@ -19,6 +19,8 @@ export interface Product {
   rating: number;
   /** 统一以 /images/ 开头，指向 public/images/ */
   img: string;
+  /** 兼容部分接口返回 image 字段 */
+  image?: string;
   desc?: string;
   description?: string;
   tag?: string;
@@ -29,6 +31,9 @@ export interface Product {
   details?: string;
   material?: string;
   views?: number;
+  /** AI 推荐系统附加字段 */
+  recommendationReason?: string;
+  similarityScore?: number;
 }
 
 /** 分类 code -> 中文展示名（前端筛选/展示使用） */

@@ -3,6 +3,8 @@
  * 统一封装所有 API 调用
  */
 
+import type { Product } from '../shared/types';
+
 const API_BASE = '/api';
 const TIMEOUT_MS = 10000; // 10秒超时
 
@@ -26,23 +28,9 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}): Promise
 
 // ==================== 类型定义 ====================
 
-export interface Product {
-  id: string;
-  category: string;
-  name: string;
-  price: number;
-  desc: string;
-  details?: string;
-  img: string;
-  tag?: string;
-  rating: number;
-  slug?: string;
-  material?: string;
-  image?: string;
-  views?: number;
-  recommendationReason?: string;
-  similarityScore?: number;
-}
+// Product 类型已统一至 shared/types（单一真相源），此处再导出，
+// 保证既有 `import type { Product } from '../services/api'` 用法继续可用。
+export type { Product };
 
 export interface Review {
   id: string;
