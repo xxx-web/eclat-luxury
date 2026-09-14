@@ -10,11 +10,13 @@ export async function onRequestGet(context) {
     // 验证 session
     const session = await verifySession(request, env);
     if (!session) {
+      // 未登录不是错误：本接口同时承担"我是谁"探针职责，
+      // 返回 200 + user:null，避免匿名访客控制台刷出大量 /api/profile 401。
       return new Response(JSON.stringify({
-        success: false,
-        message: '未登录'
+        success: true,
+        user: null
       }), {
-        status: 401,
+        status: 200,
         headers: { 'Content-Type': 'application/json' }
       });
     }

@@ -20,6 +20,7 @@ import { OrderConfirmation } from './components/OrderConfirmation';
 import { UserCenter } from './components/UserCenter';
 import { UserProvider } from './context/UserContext';
 import { ProductProvider } from './context/ProductContext';
+import { AuthProvider } from './hooks/useAuth';
 import { RecommendationSection } from './components/RecommendationSection';
 
 function AppInner() {
@@ -110,15 +111,17 @@ function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
-        <AppProvider>
-          <ToastProvider>
-            <UserProvider>
-              <ProductProvider>
-                <AppInner />
-              </ProductProvider>
-            </UserProvider>
-          </ToastProvider>
-        </AppProvider>
+        <AuthProvider>
+          <AppProvider>
+            <ToastProvider>
+              <UserProvider>
+                <ProductProvider>
+                  <AppInner />
+                </ProductProvider>
+              </UserProvider>
+            </ToastProvider>
+          </AppProvider>
+        </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>
   );

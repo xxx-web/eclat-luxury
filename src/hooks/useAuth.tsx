@@ -1,13 +1,28 @@
-import { useState, useEffect, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  type ReactNode,
+} from 'react';
 
 /**
- * 鉴权 Hook —— 改为走后端 KV 鉴权，移除 localStorage 明文密码（P0-1）。
+ * 鉴权模块（P0-1 之后：走后端 KV 会话，移除 localStorage 明文密码）
  *
  * 流程：
  * - 登录/注册请求发往 /api/login、/api/register（密码在后端用 SHA-256 校验）。
  * - 后端通过 HttpOnly + SameSite=Strict Cookie 维持会话，前端 JS 无法读取 token。
- * - 启动时调用 /api/profile，浏览器自动携带 Cookie 还原会话。
- * - 不再在客户端存储任何密码明文。
+ * - 启动时调用 /api/profile（"我是谁"探针），浏览器自动携带 Cookie 还原会话。
+ *
+ * 架构说明（为什么是 Context 而不是普通 hook）：
+ * 之前 useAuth() 被 8 个组件各自独立调用，每个实例都持有一份独立的 user state，
+ * 并各自发起一次 /api/profile 请求，导致：
+ *   1) 每次加载产生 N 次重复请求（控制台"请求风暴"）；
+ *   2) 状态不同步 —— AuthModal 登录成功后 NavBar 的 user 不会更新。
+ * 现在把状态上提到 AuthProvider（全局唯一），所有组件共享同一份会话状态，
+ * 全站只发一次 /api/profile 请求。
  */
 
 const API_BASE = '/api';
@@ -29,6 +44,16 @@ export interface AuthResult {
   error?: string;
 }
 
+export interface AuthContextValue {
+  user: User | null;
+  loading: boolean;
+  register: (name: string, email: string, password: string) => Promise<AuthResult>;
+  login: (email: string, password: string) => Promise<AuthResult>;
+  logout: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
 async function request(path: string, options?: RequestInit): Promise<Response> {
   return fetch(`${API_BASE}${path}`, {
     credentials: 'same-origin',
@@ -37,18 +62,18 @@ async function request(path: string, options?: RequestInit): Promise<Response> {
   });
 }
 
-export function useAuth() {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 启动时用 Cookie 还原会话（HttpOnly Cookie 由浏览器自动携带）
+  // 启动时用 Cookie 还原会话（HttpOnly Cookie 由浏览器自动携带），全站仅此一次
   useEffect(() => {
     let active = true;
     (async () => {
       try {
         const res = await request('/profile');
         if (res.ok) {
-          const data = (await res.json()) as { user?: User };
+          const data = (await res.json()) as { user?: User | null };
           if (active && data?.user) setUser(data.user);
         }
       } catch {
@@ -131,5 +156,18 @@ export function useAuth() {
     setUser(null);
   }, []);
 
-  return { user, loading, register, login, logout };
+  const value = useMemo<AuthContextValue>(
+    () => ({ user, loading, register, login, logout }),
+    [user, loading, register, login, logout]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth(): AuthContextValue {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return ctx;
 }
