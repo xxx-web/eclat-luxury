@@ -1,3 +1,6 @@
+// EdgeOne Pages 将 KV 绑定为全局变量（NOT on context.env）。安全解析，未绑定时为 null。
+const KV_USERS_KV = (typeof USERS_KV !== 'undefined') ? USERS_KV : null;
+const KV_ORDERS_KV = (typeof ORDERS_KV !== 'undefined') ? ORDERS_KV : null;
 /**
  * EdgeOne Edge Function - 创建订单
  * 从购物车创建新订单
@@ -22,7 +25,7 @@ export async function onRequestPost(context) {
     }
 
     // 验证用户是否存在
-    const userStr = await env.USERS_KV.get(`user:${userId}`);
+    const userStr = await KV_USERS_KV.get(`user:${userId}`);
     if (!userStr) {
       return new Response(JSON.stringify({
         success: false,
@@ -50,13 +53,13 @@ export async function onRequestPost(context) {
     };
 
     // 存储到 KV
-    await env.ORDERS_KV.put(`order:${orderId}`, JSON.stringify(orderData));
+    await KV_ORDERS_KV.put(`order:${orderId}`, JSON.stringify(orderData));
 
     // 添加到用户订单列表
-    const userOrdersStr = await env.ORDERS_KV.get(`user_orders:${userId}`);
+    const userOrdersStr = await KV_ORDERS_KV.get(`user_orders:${userId}`);
     const userOrders = userOrdersStr ? JSON.parse(userOrdersStr) : [];
     userOrders.unshift(orderId);
-    await env.ORDERS_KV.put(`user_orders:${userId}`, JSON.stringify(userOrders));
+    await KV_ORDERS_KV.put(`user_orders:${userId}`, JSON.stringify(userOrders));
 
     return new Response(JSON.stringify({
       success: true,

@@ -1,3 +1,6 @@
+// EdgeOne Pages 将 KV 绑定为全局变量（NOT on context.env）。安全解析，未绑定时为 null。
+const KV_USERS_KV = (typeof USERS_KV !== 'undefined') ? USERS_KV : null;
+const KV_ORDERS_KV = (typeof ORDERS_KV !== 'undefined') ? ORDERS_KV : null;
 /**
  * EdgeOne Edge Function - 获取用户订单列表
  * 获取指定用户的所有订单
@@ -20,7 +23,7 @@ export async function onRequestGet(context) {
     }
 
     // 如果 KV 未绑定，返回空订单列表
-    if (!env.USERS_KV || !env.ORDERS_KV) {
+    if (!KV_USERS_KV || !KV_ORDERS_KV) {
       return new Response(JSON.stringify({
         success: true,
         orders: []
@@ -30,7 +33,7 @@ export async function onRequestGet(context) {
     }
 
     // 验证用户是否存在
-    const userStr = await env.USERS_KV.get(`user:${userId}`);
+    const userStr = await KV_USERS_KV.get(`user:${userId}`);
     if (!userStr) {
       return new Response(JSON.stringify({
         success: false,
@@ -42,7 +45,7 @@ export async function onRequestGet(context) {
     }
 
     // 获取用户订单列表
-    const userOrdersStr = await env.ORDERS_KV.get(`user_orders:${userId}`);
+    const userOrdersStr = await KV_ORDERS_KV.get(`user_orders:${userId}`);
     if (!userOrdersStr) {
       return new Response(JSON.stringify({
         success: true,
@@ -57,7 +60,7 @@ export async function onRequestGet(context) {
     // 获取所有订单详情
     const orders = [];
     for (const orderId of orderIds) {
-      const orderStr = await env.ORDERS_KV.get(`order:${orderId}`);
+      const orderStr = await KV_ORDERS_KV.get(`order:${orderId}`);
       if (orderStr) {
         orders.push(JSON.parse(orderStr));
       }

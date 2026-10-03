@@ -1,3 +1,6 @@
+// EdgeOne Pages 将 KV 绑定为全局变量（NOT on context.env）。安全解析，未绑定时为 null。
+const KV_USERS_KV = (typeof USERS_KV !== 'undefined') ? USERS_KV : null;
+const KV_SESSIONS_KV = (typeof SESSIONS_KV !== 'undefined') ? SESSIONS_KV : null;
 /**
  * EdgeOne Edge Function - 获取/更新用户资料
  * 需要认证
@@ -22,7 +25,7 @@ export async function onRequestGet(context) {
     }
 
     // 从 KV 获取用户数据
-    const userStr = await env.USERS_KV.get(`user:${session.email}`);
+    const userStr = await KV_USERS_KV.get(`user:${session.email}`);
     if (!userStr) {
       return new Response(JSON.stringify({
         success: false,
@@ -73,7 +76,7 @@ export async function onRequestPut(context) {
     const updateData = await request.json();
 
     // 从 KV 获取用户数据
-    const userStr = await env.USERS_KV.get(`user:${session.email}`);
+    const userStr = await KV_USERS_KV.get(`user:${session.email}`);
     if (!userStr) {
       return new Response(JSON.stringify({
         success: false,
@@ -93,7 +96,7 @@ export async function onRequestPut(context) {
     }
 
     // 保存回 KV
-    await env.USERS_KV.put(`user:${session.email}`, JSON.stringify(userData));
+    await KV_USERS_KV.put(`user:${session.email}`, JSON.stringify(userData));
 
     const { password, ...userWithoutPassword } = userData;
 
@@ -132,7 +135,7 @@ async function verifySession(request, env) {
 
   if (!sessionToken) return null;
 
-  const sessionStr = await env.SESSIONS_KV.get(`session:${sessionToken}`);
+  const sessionStr = await KV_SESSIONS_KV.get(`session:${sessionToken}`);
   if (!sessionStr) return null;
 
   return JSON.parse(sessionStr);

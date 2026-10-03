@@ -1,3 +1,5 @@
+// EdgeOne Pages 将 KV 绑定为全局变量（NOT on context.env）。安全解析，未绑定时为 null。
+const KV_SESSIONS_KV = (typeof SESSIONS_KV !== 'undefined') ? SESSIONS_KV : null;
 /**
  * ÉCLAT Edge Functions 中间件
  * 功能：CORS 处理、认证检查、请求/响应日志、安全头
@@ -93,7 +95,7 @@ export async function onRequest(context) {
     }
 
     try {
-      const sessionData = await env.SESSIONS_KV?.get(`session:${token}`);
+      const sessionData = await KV_SESSIONS_KV?.get(`session:${token}`);
       if (!sessionData) {
         return jsonResponse({ success: false, message: '登录已过期，请重新登录' }, 401);
       }

@@ -1,3 +1,5 @@
+// EdgeOne Pages 将 KV 绑定为全局变量（NOT on context.env）。安全解析，未绑定时为 null。
+const KV_USERS_KV = (typeof USERS_KV !== 'undefined') ? USERS_KV : null;
 /**
  * EdgeOne Edge Function - 用户行为追踪 API
  * POST /api/track  — 记录用户行为（浏览/喜欢/购买）
@@ -24,10 +26,10 @@ export async function onRequestPost(context) {
       });
     }
 
-    if (env.USERS_KV) {
+    if (KV_USERS_KV) {
       try {
         const key = `behavior:${userId}`;
-        const existing = await env.USERS_KV.get(key);
+        const existing = await KV_USERS_KV.get(key);
         const behavior = existing ? JSON.parse(existing) : { userId, views: [], likes: [], purchases: [] };
 
         if (action === 'view') {
@@ -47,7 +49,7 @@ export async function onRequestPost(context) {
           }
         }
 
-        await env.USERS_KV.put(key, JSON.stringify(behavior));
+        await KV_USERS_KV.put(key, JSON.stringify(behavior));
       } catch (kvError) {
         console.warn('KV write error (non-fatal):', kvError.message);
       }
@@ -80,9 +82,9 @@ export async function onRequestGet(context) {
 
     let behavior = { userId, views: [], likes: [], purchases: [] };
 
-    if (env.USERS_KV) {
+    if (KV_USERS_KV) {
       try {
-        const data = await env.USERS_KV.get(`behavior:${userId}`);
+        const data = await KV_USERS_KV.get(`behavior:${userId}`);
         if (data) behavior = JSON.parse(data);
       } catch (e) {
         console.warn('KV read error:', e.message);

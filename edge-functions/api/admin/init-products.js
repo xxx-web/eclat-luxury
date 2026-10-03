@@ -1,3 +1,5 @@
+// EdgeOne Pages 将 KV 绑定为全局变量（NOT on context.env）。安全解析，未绑定时为 null。
+const KV_PRODUCTS_KV = (typeof PRODUCTS_KV !== 'undefined') ? PRODUCTS_KV : null;
 /**
  * 产品数据初始化脚本
  * 
@@ -60,7 +62,7 @@ export async function onRequestPost(context) {
     // 此处不再重复校验，避免与中间件两套不一致的规则。
 
     // 检查是否已有数据
-    if (!env.PRODUCTS_KV) {
+    if (!KV_PRODUCTS_KV) {
       return new Response(JSON.stringify({
         success: false,
         message: 'KV 存储未绑定'
@@ -70,7 +72,7 @@ export async function onRequestPost(context) {
       });
     }
 
-    const existingData = await env.PRODUCTS_KV.get('products');
+    const existingData = await KV_PRODUCTS_KV.get('products');
     if (existingData) {
       return new Response(JSON.stringify({
         success: false,
@@ -81,7 +83,7 @@ export async function onRequestPost(context) {
     }
 
     // 初始化产品数据
-    await env.PRODUCTS_KV.put('products', JSON.stringify(initialProducts));
+    await KV_PRODUCTS_KV.put('products', JSON.stringify(initialProducts));
 
     return new Response(JSON.stringify({
       success: true,

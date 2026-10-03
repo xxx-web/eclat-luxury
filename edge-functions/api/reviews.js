@@ -1,3 +1,5 @@
+// EdgeOne Pages 将 KV 绑定为全局变量（NOT on context.env）。安全解析，未绑定时为 null。
+const KV_PRODUCTS_KV = (typeof PRODUCTS_KV !== 'undefined') ? PRODUCTS_KV : null;
 /**
  * EdgeOne Edge Function - 评论 API
  * GET  /api/reviews?productId=xxx  — 获取产品评论
@@ -33,8 +35,8 @@ export async function onRequestGet(context) {
 
     let reviews = [];
     try {
-      if (env.PRODUCTS_KV) {
-        const data = await env.PRODUCTS_KV.get(`reviews:${productId}`);
+      if (KV_PRODUCTS_KV) {
+        const data = await KV_PRODUCTS_KV.get(`reviews:${productId}`);
         if (data) reviews = JSON.parse(data);
       }
     } catch (e) {
@@ -89,13 +91,13 @@ export async function onRequestPost(context) {
     };
 
     // 保存到 KV
-    if (env.PRODUCTS_KV) {
+    if (KV_PRODUCTS_KV) {
       try {
         const key = `reviews:${productId}`;
-        const existing = await env.PRODUCTS_KV.get(key);
+        const existing = await KV_PRODUCTS_KV.get(key);
         const reviews = existing ? JSON.parse(existing) : [];
         reviews.unshift(review);
-        await env.PRODUCTS_KV.put(key, JSON.stringify(reviews));
+        await KV_PRODUCTS_KV.put(key, JSON.stringify(reviews));
       } catch (e) {
         console.warn('KV write error:', e.message);
       }

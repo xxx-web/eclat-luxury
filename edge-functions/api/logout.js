@@ -1,3 +1,5 @@
+// EdgeOne Pages 将 KV 绑定为全局变量（NOT on context.env）。安全解析，未绑定时为 null。
+const KV_SESSIONS_KV = (typeof SESSIONS_KV !== 'undefined') ? SESSIONS_KV : null;
 /**
  * EdgeOne Edge Function - 用户登出
  * 清除 session
@@ -20,9 +22,9 @@ export async function onRequestPost(context) {
       sessionToken = authHeader.substring(7);
     }
 
-    if (sessionToken && env.SESSIONS_KV) {
+    if (sessionToken && KV_SESSIONS_KV) {
       // 从 KV 删除 session
-      await env.SESSIONS_KV.delete(`session:${sessionToken}`);
+      await KV_SESSIONS_KV.delete(`session:${sessionToken}`);
     }
 
     return new Response(JSON.stringify({

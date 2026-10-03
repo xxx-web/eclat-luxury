@@ -1,3 +1,5 @@
+// EdgeOne Pages 将 KV 绑定为全局变量（NOT on context.env）。安全解析，未绑定时为 null。
+const KV_PRODUCTS_KV = (typeof PRODUCTS_KV !== 'undefined') ? PRODUCTS_KV : null;
 /**
  * EdgeOne Edge Function - 单个产品详情 API
  * 获取指定产品 ID 的详细信息
@@ -35,8 +37,8 @@ export async function onRequestGet(context) {
     // 从 KV 获取所有产品
     let products = [];
     try {
-      if (env.PRODUCTS_KV) {
-        const productsData = await env.PRODUCTS_KV.get('products');
+      if (KV_PRODUCTS_KV) {
+        const productsData = await KV_PRODUCTS_KV.get('products');
         if (productsData) {
           products = JSON.parse(productsData);
         }

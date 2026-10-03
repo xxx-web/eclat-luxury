@@ -1,3 +1,6 @@
+// EdgeOne Pages 将 KV 绑定为全局变量（NOT on context.env）。安全解析，未绑定时为 null。
+const KV_USERS_KV = (typeof USERS_KV !== 'undefined') ? USERS_KV : null;
+const KV_SESSIONS_KV = (typeof SESSIONS_KV !== 'undefined') ? SESSIONS_KV : null;
 /**
  * EdgeOne Edge Function - 用户登录
  * 使用 KV 存储用户数据（密码已哈希验证）
@@ -22,7 +25,7 @@ export async function onRequestPost(context) {
     }
 
     // 从 KV 获取用户数据
-    if (!env.USERS_KV) {
+    if (!KV_USERS_KV) {
       return new Response(JSON.stringify({
         success: false,
         message: '服务暂不可用'
@@ -32,7 +35,7 @@ export async function onRequestPost(context) {
       });
     }
 
-    const userStr = await env.USERS_KV.get(`user:${email}`);
+    const userStr = await KV_USERS_KV.get(`user:${email}`);
     if (!userStr) {
       return new Response(JSON.stringify({
         success: false,
@@ -66,14 +69,14 @@ export async function onRequestPost(context) {
     const sessionToken = `session_${Date.now()}_${Math.random().toString(36).substr(2, 16)}`;
 
     // 存储 session 到 KV（7天过期）
-    if (env.SESSIONS_KV) {
+    if (KV_SESSIONS_KV) {
       const sessionData = {
         userId: userData.id,
         email: userData.email,
         createdAt: new Date().toISOString()
       };
 
-      await env.SESSIONS_KV.put(
+      await KV_SESSIONS_KV.put(
         `session:${sessionToken}`,
         JSON.stringify(sessionData),
         { expirationTtl: 604800 }

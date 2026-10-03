@@ -1,3 +1,5 @@
+// EdgeOne Pages 将 KV 绑定为全局变量（NOT on context.env）。安全解析，未绑定时为 null。
+const KV_PRODUCTS_KV = (typeof PRODUCTS_KV !== 'undefined') ? PRODUCTS_KV : null;
 /**
  * EdgeOne Edge Function - 邮件订阅 API
  * POST /api/subscribe
@@ -29,9 +31,9 @@ export async function onRequestPost(context) {
     const normalizedEmail = email.toLowerCase().trim();
 
     // 检查是否已订阅
-    if (env.PRODUCTS_KV) {
+    if (KV_PRODUCTS_KV) {
       try {
-        const existing = await env.PRODUCTS_KV.get(`subscriber:${normalizedEmail}`);
+        const existing = await KV_PRODUCTS_KV.get(`subscriber:${normalizedEmail}`);
         if (existing) {
           return new Response(JSON.stringify({ success: true, message: '您已经订阅过了，感谢支持！' }), {
             headers: { 'Content-Type': 'application/json' }
@@ -44,13 +46,13 @@ export async function onRequestPost(context) {
           subscribedAt: new Date().toISOString(),
           source: 'website'
         };
-        await env.PRODUCTS_KV.put(`subscriber:${normalizedEmail}`, JSON.stringify(subscriber));
+        await KV_PRODUCTS_KV.put(`subscriber:${normalizedEmail}`, JSON.stringify(subscriber));
 
         // 维护订阅者列表
-        const listStr = await env.PRODUCTS_KV.get('subscribers_list');
+        const listStr = await KV_PRODUCTS_KV.get('subscribers_list');
         const list = listStr ? JSON.parse(listStr) : [];
         list.unshift(normalizedEmail);
-        await env.PRODUCTS_KV.put('subscribers_list', JSON.stringify(list.slice(0, 1000)));
+        await KV_PRODUCTS_KV.put('subscribers_list', JSON.stringify(list.slice(0, 1000)));
       } catch (kvError) {
         console.warn('KV error (non-fatal):', kvError.message);
         // 降级：不阻塞用户，但返回成功

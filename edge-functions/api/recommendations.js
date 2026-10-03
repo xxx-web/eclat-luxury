@@ -1,3 +1,6 @@
+// EdgeOne Pages 将 KV 绑定为全局变量（NOT on context.env）。安全解析，未绑定时为 null。
+const KV_PRODUCTS_KV = (typeof PRODUCTS_KV !== 'undefined') ? PRODUCTS_KV : null;
+const KV_USERS_KV = (typeof USERS_KV !== 'undefined') ? USERS_KV : null;
 /**
  * EdgeOne Edge Function - 推荐产品 API
  * GET /api/recommendations?userId=xxx&productId=xxx&limit=6
@@ -24,8 +27,8 @@ export async function onRequestGet(context) {
     // 尝试从 KV 获取产品数据
     let products = [];
     try {
-      if (env.PRODUCTS_KV) {
-        const data = await env.PRODUCTS_KV.get('products');
+      if (KV_PRODUCTS_KV) {
+        const data = await KV_PRODUCTS_KV.get('products');
         if (data) products = JSON.parse(data);
       }
     } catch (e) {
@@ -55,8 +58,8 @@ export async function onRequestGet(context) {
     if (recommendations.length === 0 && userId) {
       // 基于用户行为的推荐（从 KV 读取用户行为）
       try {
-        if (env.USERS_KV) {
-          const behaviorStr = await env.USERS_KV.get(`behavior:${userId}`);
+        if (KV_USERS_KV) {
+          const behaviorStr = await KV_USERS_KV.get(`behavior:${userId}`);
           if (behaviorStr) {
             const behavior = JSON.parse(behaviorStr);
             const likedCategories = behavior.likes?.map(id => {

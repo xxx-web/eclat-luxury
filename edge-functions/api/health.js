@@ -1,3 +1,8 @@
+// EdgeOne Pages 将 KV 绑定为全局变量（NOT on context.env）。安全解析，未绑定时为 null。
+const KV_PRODUCTS_KV = (typeof PRODUCTS_KV !== 'undefined') ? PRODUCTS_KV : null;
+const KV_USERS_KV = (typeof USERS_KV !== 'undefined') ? USERS_KV : null;
+const KV_ORDERS_KV = (typeof ORDERS_KV !== 'undefined') ? ORDERS_KV : null;
+const KV_SESSIONS_KV = (typeof SESSIONS_KV !== 'undefined') ? SESSIONS_KV : null;
 /**
  * EdgeOne Edge Function - 健康检查 API
  * GET /api/health
@@ -11,18 +16,18 @@ export async function onRequestGet(context) {
       status: 'ok',
       timestamp: new Date().toISOString(),
       env: {
-        hasUsersKV: !!env.USERS_KV,
-        hasSessionsKV: !!env.SESSIONS_KV,
-        hasProductsKV: !!env.PRODUCTS_KV,
-        hasOrdersKV: !!env.ORDERS_KV,
+        hasUsersKV: !!KV_USERS_KV,
+        hasSessionsKV: !!KV_SESSIONS_KV,
+        hasProductsKV: !!KV_PRODUCTS_KV,
+        hasOrdersKV: !!KV_ORDERS_KV,
       }
     };
 
     // 快速测试 KV 连通性（仅检测，不阻塞）
-    if (env.PRODUCTS_KV) {
+    if (KV_PRODUCTS_KV) {
       try {
         await Promise.race([
-          env.PRODUCTS_KV.get('health_check'),
+          KV_PRODUCTS_KV.get('health_check'),
           new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
         ]);
         checks.kvStatus = 'connected';

@@ -1,3 +1,5 @@
+// EdgeOne Pages 将 KV 绑定为全局变量（NOT on context.env）。安全解析，未绑定时为 null。
+const KV_USERS_KV = (typeof USERS_KV !== 'undefined') ? USERS_KV : null;
 /**
  * EdgeOne Edge Function - 用户注册
  * 使用 KV 存储用户数据（密码已哈希）
@@ -45,7 +47,7 @@ export async function onRequestPost(context) {
     }
 
     // 检查用户是否已存在
-    if (!env.USERS_KV) {
+    if (!KV_USERS_KV) {
       return new Response(JSON.stringify({
         success: false,
         message: '服务暂不可用'
@@ -55,7 +57,7 @@ export async function onRequestPost(context) {
       });
     }
 
-    const existingUser = await env.USERS_KV.get(`user:${email}`);
+    const existingUser = await KV_USERS_KV.get(`user:${email}`);
     if (existingUser) {
       return new Response(JSON.stringify({
         success: false,
@@ -91,9 +93,9 @@ export async function onRequestPost(context) {
     };
 
     // 存储到 KV
-    if (env.USERS_KV) {
-      await env.USERS_KV.put(`user:${email}`, JSON.stringify(userData));
-      await env.USERS_KV.put(`userId:${userId}`, email);
+    if (KV_USERS_KV) {
+      await KV_USERS_KV.put(`user:${email}`, JSON.stringify(userData));
+      await KV_USERS_KV.put(`userId:${userId}`, email);
     }
 
     // 返回成功响应（不返回密码）

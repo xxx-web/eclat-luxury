@@ -1,3 +1,5 @@
+// EdgeOne Pages 将 KV 绑定为全局变量（NOT on context.env）。安全解析，未绑定时为 null。
+const KV_ORDERS_KV = (typeof ORDERS_KV !== 'undefined') ? ORDERS_KV : null;
 /**
  * EdgeOne Edge Function - 获取订单详情
  * 根据订单 ID 获取详细信息
@@ -20,7 +22,7 @@ export async function onRequestGet(context) {
     }
 
     // 从 KV 获取订单数据
-    if (!env.ORDERS_KV) {
+    if (!KV_ORDERS_KV) {
       return new Response(JSON.stringify({
         success: false,
         message: '服务暂不可用'
@@ -30,7 +32,7 @@ export async function onRequestGet(context) {
       });
     }
 
-    const orderStr = await env.ORDERS_KV.get(`order:${orderId}`);
+    const orderStr = await KV_ORDERS_KV.get(`order:${orderId}`);
 
     if (!orderStr) {
       return new Response(JSON.stringify({
