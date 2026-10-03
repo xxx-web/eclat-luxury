@@ -1,13 +1,16 @@
 // EdgeOne Pages 将 KV 绑定为全局变量（NOT on context.env）。安全解析，未绑定时为 null。
 const KV_PRODUCTS_KV = (typeof PRODUCTS_KV !== 'undefined') ? PRODUCTS_KV : null;
+
 /**
  * 产品数据初始化脚本
- * 
+ *
  * 使用方法：
- * 1. 部署后，访问 /api/admin/init-products 来初始化产品数据
+ * 1. 部署后，访问 /api/admin/init-products 来初始化产品数据（需带 Authorization: Bearer <ADMIN_SECRET>）
  * 2. 或者在前端代码中调用此 API
- * 
- * 注意：此脚本仅用于开发环境，生产环境应使用更安全的方法
+ *
+ * 注意：
+ * - 本接口受【内联管理员鉴权】保护（adminGuard），即使 EdgeOne 通用中间件未生效也能锁死。
+ * - 同时由根目录 middleware.js 的全局 admin 路由检查兜底。
  */
 
 // 示例产品数据（根据实际产品修改）
@@ -54,12 +57,58 @@ const initialProducts = [
   // 添加更多产品...
 ];
 
+/**
+ * 恒定时间字符串比较，避免时序侧信道泄露密钥长度/内容。
+ * Edge Functions 运行时无 Node Buffer，用 UTF-8 字节异或归约实现。
+ */
+function safeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const ea = new TextEncoder().encode(a);
+  const eb = new TextEncoder().encode(b);
+  if (ea.length !== eb.length) return false;
+  let diff = 0;
+  for (let i = 0; i < ea.length; i++) diff |= ea[i] ^ eb[i];
+  return diff === 0;
+}
+
+/**
+ * 内联管理员鉴权（兜底防线）。
+ * 管理员密钥来自环境变量 ADMIN_SECRET；未配置一律 500 拒绝（fail-closed）。
+ * 返回非 null 表示鉴权失败（已构造响应），调用方应直接 return 该响应。
+ */
+function adminGuard(request, env) {
+  const expected = (env && env.ADMIN_SECRET) || null;
+  if (!expected) {
+    return new Response(JSON.stringify({
+      success: false,
+      message: '服务器未配置管理员密钥'
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  const authHeader = request.headers.get('Authorization') || '';
+  const m = authHeader.match(/^Bearer\s+(.+)$/i);
+  const provided = m ? m[1].trim() : '';
+  if (!safeEqual(provided, expected)) {
+    return new Response(JSON.stringify({
+      success: false,
+      message: '无权访问管理员接口'
+    }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  return null;
+}
+
 export async function onRequestPost(context) {
   try {
     const { request, env } = context;
 
-    // 管理员鉴权统一由 _middleware.js 处理（ADMIN_SECRET + Bearer，精确匹配 + 恒定时间比较），
-    // 此处不再重复校验，避免与中间件两套不一致的规则。
+    // 内联管理员鉴权（兜底）：即使 EdgeOne 通用中间件未生效，也锁死 /api/admin/*
+    const guardRes = adminGuard(request, env);
+    if (guardRes) return guardRes;
 
     // 检查是否已有数据
     if (!KV_PRODUCTS_KV) {
