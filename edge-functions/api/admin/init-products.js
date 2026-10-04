@@ -105,6 +105,8 @@ function adminGuard(request, env) {
 export async function onRequestPost(context) {
   try {
     const { request, env } = context;
+    const url = new URL(request.url);
+    const force = url.searchParams.get('force') === '1';
 
     // 内联管理员鉴权（兜底）：即使 EdgeOne 通用中间件未生效，也锁死 /api/admin/*
     const guardRes = adminGuard(request, env);
@@ -122,21 +124,21 @@ export async function onRequestPost(context) {
     }
 
     const existingData = await KV_PRODUCTS_KV.get('products');
-    if (existingData) {
+    if (existingData && !force) {
       return new Response(JSON.stringify({
         success: false,
-        message: '产品数据已存在，如需重置请先删除'
+        message: '产品数据已存在，如需重置请加 ?force=1 覆盖'
       }), {
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    // 初始化产品数据
+    // 初始化产品数据（force=1 时覆盖已有数据）
     await KV_PRODUCTS_KV.put('products', JSON.stringify(initialProducts));
 
     return new Response(JSON.stringify({
       success: true,
-      message: `成功初始化 ${initialProducts.length} 个产品`,
+      message: force ? `已强制重置并初始化 ${initialProducts.length} 个产品` : `成功初始化 ${initialProducts.length} 个产品`,
       products: initialProducts
     }), {
       headers: { 'Content-Type': 'application/json' }
